@@ -14,9 +14,9 @@ from io import StringIO
 
 logger = logging.getLogger(__name__)
 
-
-
-def
+def login(request):
+    template = loader.get_template('login.html')
+    return HttpResponse(template.render())
 
 # Create your views here.
 def home(request):

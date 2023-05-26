@@ -1,6 +1,13 @@
-{% extends master.html %}
-
-{% block content %}
+<!DOCTYPE html>
+<html>
+{% load static %}
+<link href="{% static 'CSS/master.css' %}" rel="stylesheet">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>>
+<body style="background-color: lightblue">
+  {% block content %}
   {% if form.errors %}
     <p>Your username and password didn't match. Please Try</p>
   {% endif %}
@@ -11,21 +18,26 @@
       <p>Please login to see this page</p>
     {% endif %}
   {% endif %}
-  <form method="post" action="{% url 'login' %}">
-    {% csrf_token %}
-    <table>
-      <tr>
-        <td>{{ form.username.label_tag }}</td>
-        <td>{{ form.username }}</td>
-      </tr>
-      <tr>
-        <td>{{ form.password.label_tag }}</td>
-        <td>{{ form.password }}</td>
-      </tr>
-    </table>
-    <input type="submit" value="login">
-    <input type="hidden" name="next" value="{{ next }}">
-  </form>
-  <p><a href="{% url 'password_reset' %}">Lost password</a></p>
+  <div class="content-box" style="position: relative; background-color:white;
+  width: 60%; height: 200px; top:70px; left:23% ;border-radius: 25px">
+      <form style="position: relative; left: 28%; top: 30%" method="post" action="{% url 'login' %}">
+        {% csrf_token %}
+        <table>
+          <tr>
+            <td>{{ form.username.label_tag }}</td>
+            <td>{{ form.username }}</td>
+          </tr>
+          <tr>
+            <td>{{ form.password.label_tag }}</td>
+            <td>{{ form.password }}</td>
+          </tr>
+        </table>
+        <input type="submit" value="login">
+        <input type="hidden" name="next" value="{{ next }}">
+      </form>
+      <p style="position: relative; top: 13%; left: 50%"><a href="{% url 'password_reset' %}">Lost password</a></p>
+  </div>
 
-{% endblock %}
+  {% endblock %}
+</body>
+</html>

@@ -1,6 +1,6 @@
 from django.utils import timezone
 from pandas.api.types import is_numeric_dtype
-from pandas import pd
+import pandas as pd
 import tensorflow as tf
 from tensorflow import keras
 from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
