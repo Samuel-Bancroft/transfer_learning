@@ -1,0 +1,8 @@
+<div style="position: relative; top: 25%;margin: auto; width:25%; padding:10px;">
+  <h2 style="margin: auto; width:25%; padding:10px;">Log In</h2>
+  <form style="margin: auto; width:25%; padding:10px;" method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Log In</button>
+  </form>
+</div>

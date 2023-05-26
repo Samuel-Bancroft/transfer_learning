@@ -1,0 +1,28 @@
+{% extends "master.html" %}
+
+{% if proceed %}
+    {% block content %}
+        <div style="position: relative; background-color:white;
+        width: 60%; height: 500px; top:70px; left:23% ;border-radius: 25px" xmlns="http://www.w3.org/1999/html">
+            <h3 style="margin: auto; width:25%; padding:10px;">Base Model Created</h3>
+            <br>
+            <p style="position: relative; left: 25%;"> Model name: {{ obj.model_name }}</p>
+            <p style="position: relative; left: 25%;"> File name: {{ obj.file }}</p>
+            <p style="position: relative; left: 25%;"> File Type: {{ obj.file_type }}</p>
+            <p style="position: relative; left: 25%;"> File Data Type: {{ obj.file_data_type }}</p>
+            <p style="position: relative; left: 25%;"> Number of Columns: {{ column_count }}</p>
+            <form action='{% url "plot_data" %}' method="get">
+                <button style="position: relative; left: 40%; bottom:-120px; margin: auto; width:25%; padding:10px"
+                    type="submit">Data Visualisation</button>
+            </form>
+            <form action='{% url "sort_data" %}' method="get">
+                <button style="position: relative; left: 40%; bottom:-150px; margin: auto; width:25%; padding:10px"
+                    type="submit">Prepare Data for Model</button>
+            </form>
+        </div>
+
+
+    {% endblock %}
+{% elif not proceed %}
+    <p>No model made</p>
+{% endif %}

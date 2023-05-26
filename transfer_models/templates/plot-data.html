@@ -1,0 +1,29 @@
+{% extends "master.html" %}
+    {% block content %}
+        <div style="position: relative; background-color:white;
+        width: 60%; height: auto; top:70px; left:23% ;border-radius: 25px; padding: 10px">
+            <h3 style="margin: auto; width:25%; padding:10px;">Plotting data</h3>
+            <form  method="post">{% csrf_token %}
+                <label for="column_x">Choose Column X: </label>
+                <select name="column_x">
+                    <option value="">-Please choose an option--</option>
+                    {% for x in columns %}
+                        <option value={{ x }}>{{ x }}</option>
+                    {% endfor %}
+                </select>
+                <label style="position: relative; left: 50px" for="column_y">Choose Column Y: </label>
+                <select style="position: relative; left: 50px" name="column_y">
+                    <option value="">-Please choose an option--</option>
+                    {% for y in columns %}
+                        <option value={{ y }}>{{ y }}</option>
+                    {% endfor %}
+                </select>
+                {% if plot_display %}
+                    {{ plot|safe }}
+                {% endif %}
+                <button style="position: relative; left: 40%; bottom:-120px; margin: auto; width:25%; padding:10px"
+                        type="submit" class="btn btn-primary">Plots columns</button>
+            </form>
+        </div>
+
+    {% endblock %}
