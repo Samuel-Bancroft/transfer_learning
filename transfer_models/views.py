@@ -16,6 +16,8 @@ logger = logging.getLogger(__name__)
 
 
 
+def
+
 # Create your views here.
 def home(request):
     template = loader.get_template('home.html')

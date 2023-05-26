@@ -1,5 +1,6 @@
 from django.utils import timezone
 from pandas.api.types import is_numeric_dtype
+from pandas import pd
 import tensorflow as tf
 from tensorflow import keras
 from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
@@ -39,7 +40,7 @@ def check_file(obj, is_numeric=[], csv_file=None, count=0):
     if csv_file.isnull().values.ravel().sum() > 0:
         csv_file_dropna = csv_file.dropna()
         if count <= 3:
-            count+=1
+            count += 1
             check_file(obj=obj, csv_file=csv_file, count=count)
         else:
             return 'ERROR: File cant be used, please retry with another csv file'
