@@ -37,8 +37,11 @@ def logout(request):
 
 # Create your views here.
 def home(request):
-    template = loader.get_template('home.html')
-    return HttpResponse(template.render())
+    if not request.user.is_authenticated:
+        return redirect(f'{settings.LOGIN_URL}?next={request.path}')
+    else:
+        template = loader.get_template('home.html')
+        return HttpResponse(template.render())
 
 def about_page(request):
     template = loader.get_template('about.html')
