@@ -1,6 +1,9 @@
 from django.shortcuts import render, reverse, redirect
 from django.template import loader
 from django.http import HttpResponse, HttpResponseRedirect
+from django.contrib.auth import authenticate, login, logout
+from django.conf import settings
+from django.shortcuts import redirect
 from .forms import *
 from .models import *
 #from .update_data import updates
@@ -15,6 +18,20 @@ from io import StringIO
 logger = logging.getLogger(__name__)
 
 def login(request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            template = loader.get_template('home.html')
+            return HttpResponse(template.render())
+    else:
+        template = loader.get_template('login.html')
+        return HttpResponse(template.render())
+
+def logout(request):
+    logout(request)
     template = loader.get_template('login.html')
     return HttpResponse(template.render())
 
@@ -82,31 +99,33 @@ def plot_data(request):
         return HttpResponse(template.render(context, request))
 
 def upload_file(request):
-    if request.method == 'POST':
-        form = CreateModelForm(request.POST, request.FILES)
-        if form.is_valid():
-            template = loader.get_template('model_test.html')
-            model_name = form.cleaned_data['model_name']
-            files = form.cleaned_data['file']
-            created_by = form.cleaned_data['created_by']
-            columns = get_columns(files)
-            file_type = form.cleaned_data['file_type']
-            file_data_type = form.cleaned_data['file_data_type']
-            form = CreateModel(model_name=model_name,
-                                                file=files,
-                                                created_by=created_by,
-                                                columns=columns,
-                                                file_data_type=file_data_type,
-                                                file_type=file_type
-                                            )
-            form.save()
-            columns_list = columns.split(',')
-            context = {'obj': form,'proceed': True if form else False,'column_count': get_count(columns), 'columns_list': columns_list}
-            return HttpResponse(template.render(context, request))
-            #return redirect('/model_test/' , context)
+    if not request.user.is_authenticated:
+        return redirect(f'{settings.LOGIN_URL}?next={request.path}')
     else:
-        form = CreateModelForm()
-        return render(request, 'user-page.html', {'form': form})
+        if request.method == 'POST':
+            form = CreateModelForm(request.POST, request.FILES)
+            if form.is_valid():
+                template = loader.get_template('model_test.html')
+                model_name = form.cleaned_data['model_name']
+                files = form.cleaned_data['file']
+                created_by = form.cleaned_data['created_by']
+                columns = get_columns(files)
+                file_type = form.cleaned_data['file_type']
+                file_data_type = form.cleaned_data['file_data_type']
+                form = CreateModel(model_name=model_name,
+                                                    file=files,
+                                                    created_by=created_by,
+                                                    columns=columns,
+                                                    file_data_type=file_data_type,
+                                                    file_type=file_type
+                                                )
+                form.save()
+                columns_list = columns.split(',')
+                context = {'obj': form,'proceed': True if form else False,'column_count': get_count(columns), 'columns_list': columns_list}
+                return HttpResponse(template.render(context, request))
+        else:
+            form = CreateModelForm()
+            return render(request, 'user-page.html', {'form': form})
 
 def get_contact(request):
     if request.method == "POST":
