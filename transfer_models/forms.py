@@ -5,8 +5,8 @@ from .models import *
 class CreateModelForm(forms.ModelForm):
     class Meta:
         model = CreateModel
-        fields = ["model_name", "file", 'file_type', 'file_data_type', 'created_by']
-        labels = {"model_name": "Model Name", "file": "File", 'file_type': 'File Type', 'file_data_type':'File Data Type', 'created_by':"Created By"}
+        fields = ["model_name", "file", 'file_type', 'file_data_type']#, 'created_by']
+        labels = {"model_name": "Model Name", "file": "File", 'file_type': 'File Type', 'file_data_type':'File Data Type'}#, 'created_by':"Created By"}
 
 
 class Contact(models.Model):

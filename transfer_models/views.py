@@ -108,7 +108,8 @@ def upload_file(request):
                 template = loader.get_template('model_test.html')
                 model_name = form.cleaned_data['model_name']
                 files = form.cleaned_data['file']
-                created_by = form.cleaned_data['created_by']
+                username = request.user.username
+                created_by = Member.objects.get(firstname=username)
                 columns = get_columns(files)
                 file_type = form.cleaned_data['file_type']
                 file_data_type = form.cleaned_data['file_data_type']
