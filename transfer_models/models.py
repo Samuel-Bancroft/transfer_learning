@@ -9,7 +9,7 @@ class Member(models.Model):
   username = models.CharField(max_length=100)
   password = models.CharField(max_length=50)
   email = models.EmailField(max_length=255)
-  joined_date = models.DateField(null=True)
+  joined_date = models.DateField(default=timezone.now)
 
   def __str__(self):
     return f"{self.firstname} {self.lastname}"
