@@ -62,12 +62,15 @@ def logout(request):
 def home(request):
     if not request.user.is_authenticated:
         return redirect(f'{settings.LOGIN_URL}?next={request.path}')
+    elif request.user:
+        template = loader.get_template('home.html')
+        models = CreateModel.objects.filter(created_by__username=request.user.username)
+        context = {'models': models, 'display': True if models else False}
+        return HttpResponse(template.render(context, request))
     else:
         template = loader.get_template('home.html')
-        models = CreateModel.objects.filter(created_by=request.user.username)
-        context = {'models': models}
-        return HttpResponse(template.render(context))
-
+        return HttpResponse(template.render())
+    
 def about_page(request):
     template = loader.get_template('about.html')
     return HttpResponse(template.render())
