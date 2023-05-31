@@ -7,6 +7,13 @@
 {% block content %}
   <div class="content-box" style="position: relative; background-color:white;
   width: 60%; height: 600px; top:70px; left:23% ;border-radius: 25px">
-    <h3 style="margin: auto; width:25%; padding:10px;">Recent Updates</h3>
+    <h3 style="margin: auto; width:25%; padding:10px;">Most Recent Activity</h3>
+    <br>
+    <br>
+    <div style="position: relative; left: 20px">
+      {% for x in models %}
+          <a href="">{{ x.model_name }} - {{ x.date_created }}</a>
+      {% endfor %}
+    </div>
   </div>
 {% endblock %}

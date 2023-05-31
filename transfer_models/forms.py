@@ -2,6 +2,21 @@ from django import forms
 from django.db import models
 from .models import *
 
+
+class AddMemberForm(forms.ModelForm):
+    password = forms.CharField(widget=forms.PasswordInput)
+    class Meta:
+        model = Member
+        fields = ('firstname', 'lastname', 'username', 'password', 'email')
+
+
+class LoginAuthenticationForm(forms.Form):
+    username = forms.CharField(label='Username')
+    password = forms.CharField(widget=forms.PasswordInput())
+    class Meta:
+        fields = ['username', 'password']
+
+
 class CreateModelForm(forms.ModelForm):
     class Meta:
         model = CreateModel

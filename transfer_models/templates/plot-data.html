@@ -1,29 +1,45 @@
 {% extends "master.html" %}
     {% block content %}
         <div style="position: relative; background-color:white;
-        width: 60%; height: auto; top:70px; left:23% ;border-radius: 25px; padding: 10px">
+        width: 800px; height: auto; top:70px; left:30% ;border-radius: 25px; padding: 10px">
             <h3 style="margin: auto; width:25%; padding:10px;">Plotting data</h3>
-            <form  method="post">{% csrf_token %}
-                <label for="column_x">Choose Column X: </label>
-                <select name="column_x">
-                    <option value="">-Please choose an option--</option>
-                    {% for x in columns %}
-                        <option value={{ x }}>{{ x }}</option>
-                    {% endfor %}
-                </select>
-                <label style="position: relative; left: 50px" for="column_y">Choose Column Y: </label>
-                <select style="position: relative; left: 50px" name="column_y">
-                    <option value="">-Please choose an option--</option>
-                    {% for y in columns %}
-                        <option value={{ y }}>{{ y }}</option>
-                    {% endfor %}
-                </select>
-                {% if plot_display %}
-                    {{ plot|safe }}
-                {% endif %}
-                <button style="position: relative; left: 40%; bottom:-120px; margin: auto; width:25%; padding:10px"
-                        type="submit" class="btn btn-primary">Plots columns</button>
-            </form>
+            <div>
+                <form  method="post">{% csrf_token %}
+                    <label style="" for="plot_type">Type of plot</label>
+                    <select name="plot_type">
+                        <option value="">-Please choose an option--</option>
+                        <option value="line_plot">Line Plot</option>
+                        <option value="scatter_plot">Scatter Plot</option>
+                    </select>
+                    <br>
+                    <br>
+                    <label for="column_x">Choose Column X: </label>
+                    <select name="column_x">
+                        <option value="">-Please choose an option--</option>
+                        {% for x in columns %}
+                            <option value={{ x }}>{{ x }}</option>
+                        {% endfor %}
+                    </select>
+                    <label style="position: relative; left: 50px" for="column_y">Choose Column Y: </label>
+                    <select style="position: relative; left: 50px" name="column_y">
+                        <option value="">-Please choose an option--</option>
+                        {% for y in columns %}
+                            <option value={{ y }}>{{ y }}</option>
+                        {% endfor %}
+                    </select>
+
+                    {% if plot_display %}
+                        {{ plot|safe }}
+                    {% endif %}
+
+                    <button style="position: relative; left: 40%; margin: auto; width:25%; padding:10px"
+                            type="submit" class="btn btn-primary">Plot data</button>
+                </form>
+                <form action='{% url "sort_data" %}' method="get">
+                        <button style="position: relative; left: 40%; bottom:-150px; margin: auto; width:25%; padding:10px"
+                            type="submit">Prepare Data for Model</button>
+                </form>
+            </div>
         </div>
 
     {% endblock %}

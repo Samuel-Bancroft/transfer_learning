@@ -6,6 +6,8 @@ from django.utils import timezone
 class Member(models.Model):
   firstname = models.CharField(max_length=255)
   lastname = models.CharField(max_length=255)
+  username = models.CharField(max_length=100)
+  password = models.CharField(max_length=50)
   email = models.EmailField(max_length=255)
   joined_date = models.DateField(null=True)
 

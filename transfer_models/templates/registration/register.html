@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+{% load static %}
+<link href="{% static 'CSS/master.css' %}" rel="stylesheet">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>>
+<body style="background-color: lightblue">
+  <div class="content-box" style="position: relative; background-color:white;
+  width: 60%; height: 200px; top:70px; left:23% ;border-radius: 25px">
+      <form style="position: relative; left: 28%; top: 30%" method="post" action="{% url 'register' %}">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" value="login">
+      </form>
+      <p style="position: relative; top: 13%; left: 50%"><a href="{% url 'password_reset' %}">Lost password</a></p>
+  </div>
+
+  {% endblock %}
+</body>
+</html>
