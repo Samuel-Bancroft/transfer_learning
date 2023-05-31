@@ -1,20 +1,17 @@
 from django import forms
 from django.db import models
 from .models import *
+from django.contrib.auth.models import User
 
 
-class AddMemberForm(forms.ModelForm):
-    password = forms.CharField(widget=forms.PasswordInput)
+class LoginAuthenticationForm(forms.ModelForm):
+    username = forms.CharField(label='Username', max_length=100)
+    password = forms.CharField(widget=forms.PasswordInput(), label='Password', max_length=100)
+
     class Meta:
-        model = Member
-        fields = ('firstname', 'lastname', 'username', 'password', 'email')
-
-
-class LoginAuthenticationForm(forms.Form):
-    username = forms.CharField(label='Username')
-    password = forms.CharField(widget=forms.PasswordInput())
-    class Meta:
+        model=User
         fields = ['username', 'password']
+
 
 
 class CreateModelForm(forms.ModelForm):

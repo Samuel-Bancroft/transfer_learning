@@ -20,7 +20,7 @@
   {% endif %}
   <div class="content-box" style="position: relative; background-color:white;
   width: 60%; height: 200px; top:70px; left:23% ;border-radius: 25px">
-      <form style="position: relative; left: 28%; top: 30%" method="post" action="{% url 'login' %}">
+      <form style="position: relative; left: 28%; top: 30%" method="post" enctype="multipart/form-data" >
         {% csrf_token %}
         {{ form.as_p }}
         <input type="submit" value="login">
