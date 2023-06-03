@@ -17,6 +17,10 @@
                 <button style="position: relative; left: 40%; bottom:-120px; margin: auto; width:25%; padding:10px"
                     type="submit">Data Visualisation</button>
             </form>
+            <form action='{% url "sort_data" %}' method="get">
+                        <button style="position: relative; left: 40%; bottom:-150px; margin: auto; width:25%; padding:10px"
+                            type="submit">Prepare Data for Model</button>
+                </form>
         </div>
       </div>
 {% endblock %}

@@ -8,13 +8,14 @@ from django.shortcuts import redirect
 from .forms import *
 from .models import *
 #from .update_data import updates
-from .functions import get_columns, get_count
+from .functions import get_columns, get_count, check_file
 import logging
 from django.views.decorators.csrf import requires_csrf_token
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 from io import StringIO
+from pandas.api.types import is_numeric_dtype
 
 logger = logging.getLogger(__name__)
 
@@ -98,14 +99,9 @@ def model_test(request):
     else:
         return render(request, 'model_test.html')
 
-
-def sort_data(request):
+def details(request, id):
     if not request.user.is_authenticated:
         return redirect(f'{settings.LOGIN_URL}?next={request.path}')
-    context = {'obj': 'string'}
-    return redirect('sort_data' , context)
-
-def details(request, id):
     data = CreateModel.objects.get(id=id, created_by__username=request.user.username)
     template = loader.get_template('details.html')
     context = {
@@ -178,6 +174,45 @@ def upload_file(request):
         else:
             form = CreateModelForm()
             return render(request, 'user-page.html', {'form': form})
+
+def sort_data(request):
+    if not request.user.is_authenticated:
+        return redirect(f'{settings.LOGIN_URL}?next={request.path}')
+    user = request.user.username
+    id = request.session.get('data_id')
+    data = CreateModel.objects.get(id=id, created_by__username=user)
+    sort_data = pd.read_csv(data.file)
+    if not sort_data:
+        context = {'error': sort_data}
+        template = loader.get_template('sorting-data.html')
+        return HttpResponse(template.render(context, request))
+    elif sort_data.isnull().values.ravel().sum() > 0:
+        sort_data = sort_data.dropna()
+    columns = data.column_name_list()
+    for column in columns:
+        if not is_numeric_dtype(sort_data[column]):
+            unique_values = sort_data[column].unique()
+            for index, word in enumerate(unique_values):
+                sort_data[column] = sort_data[column].replace([word], index)
+            if not is_numeric_dtype((sort_data[column])):
+                sort_data = sort_data.drop(columns=column)
+    username = request.user.get_username()
+    created_by = User.objects.get(username=username)
+    columns = get_columns(sort_data)
+    sorted_model = SortedModel(
+        model_name=data.model_name,
+        file=sort_data,
+        created_by=user,
+        columns=columns,
+        file_data_type='numerical',
+        file_type=data.file_type,
+        from_file__id=data.id
+    )
+    sorted_model.save()
+    context = {'obj': sorted_model }
+    request.session['sorted_data_id'] = sorted_model.id
+    template = loader.get_template('sorting-data.html')
+    return HttpResponse(template.render(context, request))
 
 def get_contact(request):
     if not request.user.is_authenticated:

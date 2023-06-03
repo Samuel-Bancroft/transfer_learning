@@ -11,7 +11,7 @@ urlpatterns = [
     path('how-to/', views.how_to),
     path('create-model/', views.upload_file),
     path(r'model_test/', views.model_test),
-    path(r'sort_data/', views.sort_data, name='sort_data'),
+    path('sort_data/', views.sort_data, name='sort_data'),
     path(r'plot_data', views.plot_data, name='plot_data'),
     path('contact-us/', views.contact_us),
     path('details/<int:id>', views.details, name='details'),

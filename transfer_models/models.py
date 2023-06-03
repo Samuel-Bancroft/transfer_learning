@@ -17,14 +17,11 @@ class BaseModel(models.Model):
 class CreateModel(BaseModel):
   file = models.FileField()
   columns = models.CharField(max_length=1000, default='default')
-
   class Meta:
     verbose_name_plural = 'Created Models'
     ordering = ('-date_created',)
-
   def __str__(self):
     return f"{self.model_name}"
-
   def column_name_list(self):
     return self.columns.split(",")
 

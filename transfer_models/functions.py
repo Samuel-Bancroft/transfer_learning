@@ -34,35 +34,7 @@ def get_count(data):
     else:
         return ''
 
-def check_file(obj, is_numeric=[], csv_file=None, count=0):
-    if not csv_file:
-        csv_file = pd.read_csv(obj.file)
-    if csv_file.isnull().values.ravel().sum() > 0:
-        csv_file_dropna = csv_file.dropna()
-        if count <= 3:
-            count += 1
-            check_file(obj=obj, csv_file=csv_file, count=count)
-        else:
-            return 'ERROR: File cant be used, please retry with another csv file'
-    else:
-        columns = obj.column_name_list()
-        for column in columns:
-            if is_numeric_dtype(csv_file[column]):
-                is_numeric.append(True)
-            else:
-                unique_values = csv_file[column].unique()
-                for index, word in enumerate(unique_values):
-                    csv_file[column] = csv_file[column].replace([word], index)
-                if is_numeric_dtype(csv_file[column]):
-                    is_numeric.append(True)
-                else:
-                    csv_file = csv_file.drop(columns=column)
-        if all(is_numeric):
-            pass
-        else:
-            pass
 
-    return ''
 
 
 
