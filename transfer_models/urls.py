@@ -14,4 +14,5 @@ urlpatterns = [
     path(r'sort_data/', views.sort_data, name='sort_data'),
     path(r'plot_data', views.plot_data, name='plot_data'),
     path('contact-us/', views.contact_us),
+    path('details/<int:id>', views.details, name='details'),
 ]

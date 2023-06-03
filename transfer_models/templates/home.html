@@ -3,25 +3,21 @@
 {% block title %}
 {% endblock %}
 {% block content %}
-  {% if display %}
       <div class="content-box" style="position: relative; background-color:white;
       width: 60%; height: 600px; top:70px; left:23% ;border-radius: 25px">
         <h3 style="margin: auto; width:25%; padding:10px;">Most Recent Activity</h3>
         <br>
-        <br>
-        <div style="position: relative; left: 20px">
-          <ul>
-            {% for x in models %}
-                <li><a href="">{{ x.model_name }} - {{ x.date_created }}</a></li>
-            {% endfor %}
-          </ul>
-        </div>
+        {% if display %}
+            <div style="position: relative; left: 20px">
+                <h3>Unsorted Data Models</h3>
+                <ul>
+                    {% for x in models %}
+                        <li><a href="details/{{ x.id }}" class="button">{{ x.model_name }} - {{ x.date_created }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% else %}
+          <p style="position: relative; left: 100px; top: 50px">You have no recent activity</p>
+        {% endif %}
       </div>
-  {% else %}
-      <div class="content-box" style="position: relative; background-color:white;
-        width: 60%; height: 600px; top:70px; left:23% ;border-radius: 25px">
-          <h3 style="margin: auto; width:25%; padding:10px;">Most Recent Activity</h3>
-          <p>No models to display</p>
-      </div>
-  {% endif %}
 {% endblock %}

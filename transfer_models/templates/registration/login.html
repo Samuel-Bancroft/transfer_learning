@@ -5,29 +5,26 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-</head>>
+</head>
 <body style="background-color: lightblue">
   {% block content %}
-  {% if form.errors %}
-    <p>Your username and password didn't match. Please Try</p>
-  {% endif %}
-  {% if next %}
-    {% if user.is_authenticated %}
-      <p>Your account doesnt have access to this page. To proceed, please login with an account that has access</p>
-    {% else %}
-      <p>Please login to see this page</p>
+    {% if form.errors %}
+      <p>Your username and password didn't match. Please Try again</p>
+    {% elif next %}
+      {% if user.is_authenticated %}
+        <p>Your account doesnt have access to this page. To proceed, please login with an account that has access</p>
+      {% else %}
+        <p>Please login to see this page</p>
+      {% endif %}
     {% endif %}
-  {% endif %}
-  <div class="content-box" style="position: relative; background-color:white;
-  width: 60%; height: 200px; top:70px; left:23% ;border-radius: 25px">
-      <form style="position: relative; left: 28%; top: 30%" method="post" enctype="multipart/form-data" >
-        {% csrf_token %}
-        {{ form.as_p }}
-        <input type="submit" value="login">
-      </form>
-      <p style="position: relative; top: 13%; left: 50%"><a href="{% url 'password_reset' %}">Lost password</a></p>
-  </div>
-
+    <div class="content-box" style="position: relative; background-color:white;
+    width: 60%; height: 200px; top:70px; left:23% ;border-radius: 25px">
+        <form style="position: relative; left: 28%; top: 30%" method="post" enctype="multipart/form-data" >
+          {% csrf_token %}
+          {{ form.as_p }}
+          <input type="submit" value="login">
+        </form>
+    </div>
   {% endblock %}
 </body>
 </html>
