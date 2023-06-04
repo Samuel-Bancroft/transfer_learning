@@ -202,7 +202,7 @@ def sort_data(request):
     user = request.user.username
     id = request.session.get('data_id')
     data = CreateModel.objects.get(id=id, created_by__username=user)
-    if SortedModel.objects.filter(model_name=data.model_name):
+    if SortedModel.objects.filter(from_file__id=data.id):
         context = {'error': 'Sorted File already exists'}
         template = loader.get_template('sorting-data.html')
         return HttpResponse(template.render(context, request))
@@ -212,6 +212,7 @@ def sort_data(request):
         template = loader.get_template('sorting-data.html')
         return HttpResponse(template.render(context, request))
     elif sort_data.isnull().values.ravel().sum() > 0:
+        #add dropped columsn in to the remoevd_columns list as they have been removed
         sort_data = sort_data.dropna()
     columns = sort_data.columns.values.tolist()
     converted_columns = []
