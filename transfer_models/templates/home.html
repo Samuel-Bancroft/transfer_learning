@@ -7,7 +7,7 @@
       width: 60%; height: 600px; top:70px; left:23% ;border-radius: 25px">
         <h3 style="margin: auto; width:25%; padding:10px;">Most Recent Activity</h3>
         <br>
-        {% if display %}
+        {% if display_models %}
             <div style="position: relative; left: 20px">
                 <h3>Unsorted Data Models</h3>
                 <ul>
@@ -17,7 +17,19 @@
                 </ul>
             </div>
         {% else %}
-          <p style="position: relative; left: 100px; top: 50px">You have no recent activity</p>
+          <p style="position: relative; left: 100px; top: 50px">You have no recent activity creating a model</p>
+        {% endif %}
+        {% if display_sorted_models %}
+            <div style="position: relative; right:-70%; top:-16%">
+                <h3>Sorted Data Models</h3>
+                <ul>
+                    {% for x in sorted_models %}
+                        <li><a href="sorted_details/{{ x.id }}" class="button">{{ x.model_name }} - {{ x.date_created }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% else %}
+          <p style="position: relative; left: 100px; top: 50px">You have no recent activity sorting a model</p>
         {% endif %}
       </div>
 {% endblock %}

@@ -8,7 +8,8 @@ from django.shortcuts import redirect
 from .forms import *
 from .models import *
 #from .update_data import updates
-from .functions import get_columns, get_count, check_file
+from .functions import get_columns, get_count
+import matplotlib
 import logging
 from django.views.decorators.csrf import requires_csrf_token
 import pandas as pd
@@ -57,7 +58,15 @@ def home(request):
         models = CreateModel.objects.filter(created_by__username=request.user.username)
         if models:
             models.order_by('-date_created__history_timestamp')
-        context = {'models': models, 'display': True if models else False}
+        sorted_models = SortedModel.objects.filter(created_by__username=request.user.username)
+        if sorted_models:
+            sorted_models.order_by('date_created__history_timestamp')
+        context = {
+            'models': models,
+            'sorted_models': sorted_models,
+            'display_models': True if models else False,
+            'display_sorted_models': True if sorted_models else False
+        }
         return HttpResponse(template.render(context, request))
     else:
         template = loader.get_template('home.html')
@@ -110,6 +119,17 @@ def details(request, id):
     request.session['data_id'] = data.id
     return HttpResponse(template.render(context, request))
 
+def sorted_details(request, id):
+    if not request.user.is_authenticated:
+        return redirect(f'{settings.LOGIN_URL}?next={request.path}')
+    data = SortedModel.objects.get(id=id, created_by__username=request.user.username)
+    template = loader.get_template('sorted_details.html')
+    context = {
+        'data': data,
+      }
+    request.session['data_id'] = data.id
+    return HttpResponse(template.render(context, request))
+
 def plot_data(request):
     if not request.user.is_authenticated:
         return redirect(f'{settings.LOGIN_URL}?next={request.path}')
@@ -121,14 +141,15 @@ def plot_data(request):
     if not data:
         data = CreateModel.objects.filter(created_by__username=request.user.username).order_by('date_created').first()
     context = {'columns': data.column_name_list}
+    matplotlib.use('SVG')
     if request.method =='POST':
         x = request.POST.get('column_x')
         y = request.POST.get('column_y')
         plot_type = request.POST.get('plot_type')
         file = data.file
         df = pd.read_csv(file)
-        xpoints = df[[str(request.POST.get('column_x'))]]
-        ypoints = df[[str(request.POST.get('column_y'))]]
+        xpoints = df[[str(x)]]
+        ypoints = df[[str(y)]]
         fig = plt.figure()
         if plot_type == 'line_plot':
             plt.plot(xpoints, ypoints)
@@ -138,7 +159,7 @@ def plot_data(request):
         fig.savefig(imgdata, format='svg')
         imgdata.seek(0)
         plot_data = imgdata.getvalue()
-        context = {'columns': data.column_name_list,'plot_display': True if x else False, 'plot': plot_data, 'obj': data}
+        context = {'columns': data.column_name_list,'plot_display': True if x else False, 'plot_data': plot_data, 'obj': data}
         return HttpResponse(template.render(context, request))
     else:
         context = {'columns': data.column_name_list}
@@ -181,14 +202,18 @@ def sort_data(request):
     user = request.user.username
     id = request.session.get('data_id')
     data = CreateModel.objects.get(id=id, created_by__username=user)
+    if SortedModel.objects.filter(model_name=data.model_name):
+        context = {'error': 'Sorted File already exists'}
+        template = loader.get_template('sorting-data.html')
+        return HttpResponse(template.render(context, request))
     sort_data = pd.read_csv(data.file)
-    if not sort_data:
-        context = {'error': sort_data}
+    if not data:
+        context = {'error': 'No data to work with'}
         template = loader.get_template('sorting-data.html')
         return HttpResponse(template.render(context, request))
     elif sort_data.isnull().values.ravel().sum() > 0:
         sort_data = sort_data.dropna()
-    columns = data.column_name_list()
+    columns = sort_data.columns.values.tolist()
     for column in columns:
         if not is_numeric_dtype(sort_data[column]):
             unique_values = sort_data[column].unique()
@@ -198,15 +223,14 @@ def sort_data(request):
                 sort_data = sort_data.drop(columns=column)
     username = request.user.get_username()
     created_by = User.objects.get(username=username)
-    columns = get_columns(sort_data)
     sorted_model = SortedModel(
         model_name=data.model_name,
-        file=sort_data,
-        created_by=user,
+        sorted_file=data.file,
+        created_by=created_by,
         columns=columns,
         file_data_type='numerical',
         file_type=data.file_type,
-        from_file__id=data.id
+        from_file=data
     )
     sorted_model.save()
     context = {'obj': sorted_model }
