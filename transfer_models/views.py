@@ -214,15 +214,22 @@ def sort_data(request):
     elif sort_data.isnull().values.ravel().sum() > 0:
         sort_data = sort_data.dropna()
     columns = sort_data.columns.values.tolist()
+    converted_columns = []
+    removed_columns = []
     for column in columns:
         if not is_numeric_dtype(sort_data[column]):
             unique_values = sort_data[column].unique()
             for index, word in enumerate(unique_values):
+                converted_columns.append(column)
                 sort_data[column] = sort_data[column].replace([word], index)
             if not is_numeric_dtype((sort_data[column])):
+                removed_columns.append(column)
                 sort_data = sort_data.drop(columns=column)
     username = request.user.get_username()
     created_by = User.objects.get(username=username)
+    for column in converted_columns[:]:
+        if column in removed_columns:
+            converted_columns.remove(column)
     sorted_model = SortedModel(
         model_name=data.model_name,
         sorted_file=data.file,
@@ -233,7 +240,10 @@ def sort_data(request):
         from_file=data
     )
     sorted_model.save()
-    context = {'obj': sorted_model }
+    context = {'obj': sorted_model,
+               'removed_columns': removed_columns,
+               'converted_columns': converted_columns
+               }
     request.session['sorted_data_id'] = sorted_model.id
     template = loader.get_template('sorting-data.html')
     return HttpResponse(template.render(context, request))

@@ -6,7 +6,34 @@
         {% if error %}
             {{ error }}
         {% elif obj %}
-            {{ obj.model_name }}
+             <h1 style="position: relative; left:40% ;border-radius: 25px">{{ obj.model_name }}</h1>
+            <br>
+            <div style="position: relative; left:35% ;border-radius: 25px">
+                <h3>{{ obj.date_created }}</h3>
+                <p>{{ obj.file_type }}</p>
+                <p>{{ obj.file_data_type }}</p>
+                <p>{{ obj.file }}</p>
+                <br>
+                <p>remoevd columns</p>
+                {% for column in removed_columns %}
+                    <p>{{ column }}</p>
+                {% endfor %}
+                <p>converted columns</p>
+                {% for column in converted_columns %}
+                    <p>{{ column }}</p>
+                {% endfor %}
+                <br>
+
+                <form action='{% url "plot_data" %}' method="get">
+                    {% csrf_token %}
+                    <button style="position: relative; left: 40%; bottom:-120px; margin: auto; width:25%; padding:10px"
+                        type="submit">Data Visualisation</button>
+                </form>
+                <form action='{% url "sort_data" %}' method="get">
+                            <button style="position: relative; left: 40%; bottom:-150px; margin: auto; width:25%; padding:10px"
+                                type="submit">Start training</button>
+                </form>
+            </div>
         {% endif %}
 
     </div>
