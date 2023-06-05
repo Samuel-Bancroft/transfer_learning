@@ -1,0 +1,18 @@
+{% extends "master.html" %}
+
+{% block content %}
+    <div style="position: relative; background-color:white;
+            width: 60%; height: auto; top:70px; left:23% ;border-radius: 25px; padding: 10px">
+        <h3 style="margin: auto; width:25%; padding:10px;">Results from training</h3>
+        <br>
+        {% if error %}
+            <p>{{ error }}</p>
+        {% elif display_results %}
+            <p>elif</p>
+        {% else %}
+            <p>else</p>
+        {% endif %}
+    </div>
+
+
+{% endblock %}

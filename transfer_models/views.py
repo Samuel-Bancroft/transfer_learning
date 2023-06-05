@@ -17,6 +17,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from io import StringIO
 from pandas.api.types import is_numeric_dtype
+import tensorflow as tf
 
 logger = logging.getLogger(__name__)
 
@@ -127,7 +128,7 @@ def sorted_details(request, id):
     context = {
         'data': data,
       }
-    request.session['data_id'] = data.id
+    request.session['sorted_data_id'] = data.id
     return HttpResponse(template.render(context, request))
 
 def plot_data(request):
@@ -261,3 +262,41 @@ def get_contact(request):
     else:
         form = ContactForm()
     return render(request, "contact-page.html", {"form": form})
+
+def training(request):
+    if not request.user.is_authenticated:
+        return redirect(f'{settings.LOGIN_URL}?next={request.path}')
+    user = request.user.username
+    id = request.session.get('data_id')
+    sorted_data = SortedModel.objects.filter(id=id, created_by__username=user)
+    if not sorted_data:
+        context = {'error': 'Sorted File doesnt exist'}
+        template = loader.get_template('training.html')
+        return HttpResponse(template.render(context, request))
+    file = sorted_data.file
+    df = pd.read_csv(file)
+    target = sorted_data.columns[0]
+    features = df[target]
+    tf.convert_to_tensor(features)
+    normalizer = tf.keras.layers.Normalization(axis=-1)
+    normalizer.adapt(features)
+    normalizer(features.iloc[:3])
+    SHUFFLE_BUFFER = 500
+    BATCH_SIZE = 2
+
+    model = tf.keras.Sequential([
+            normalizer,
+            tf.keras.layers.Dense(10, activation='relu'),
+            tf.keras.layers.Dense(10, activation='relu')
+        ])
+
+    model.compile(optimizer='adam',
+                      loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
+                      metrics=['accuracy'])
+
+    model = get_basic_model()
+    model.fit(features, target, epochs=15, batch_size=BATCH_SIZE)
+
+
+
+
