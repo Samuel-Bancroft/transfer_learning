@@ -207,7 +207,11 @@ def sort_data(request):
         context = {'error': 'Sorted File already exists'}
         template = loader.get_template('sorting-data.html')
         return HttpResponse(template.render(context, request))
-    sort_data = pd.read_csv(data.file)
+    not_sort_data = pd.read_csv(data.file)
+    #While this is local storage
+    not_sort_data.to_csv(f'sorted_{data.file}.csv')
+    sorted_data = pd.read_csv(r'C:\Users\samue\Documents\dataset\sorted_'+ name +'.csv')
+
     if not data:
         context = {'error': 'No data to work with'}
         template = loader.get_template('sorting-data.html')
@@ -267,7 +271,7 @@ def training(request):
     if not request.user.is_authenticated:
         return redirect(f'{settings.LOGIN_URL}?next={request.path}')
     user = request.user.username
-    id = request.session.get('data_id')
+    id = request.session.get('sorted_data_id')
     sorted_data = SortedModel.objects.filter(id=id, created_by__username=user)
     if not sorted_data:
         context = {'error': 'Sorted File doesnt exist'}
