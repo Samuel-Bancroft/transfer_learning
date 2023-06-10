@@ -28,9 +28,11 @@ class CreateModel(BaseModel):
 
 class SortedModel(BaseModel):
   sorted_file = models.FileField()
-  columns = models.CharField(max_length=1000, default='default')
+  columns = models.CharField(max_length=1000, default=None)
   from_file = models.OneToOneField(CreateModel, on_delete=models.CASCADE, default='')
+  converted_columns = models.CharField(max_length=1000, default=None)
+  removed_columns = models.CharField(max_length=1000, default=None)
   def __str__(self):
-    return f"{self.model_name}"
+    return f"{self.model_name} created from {self.from_file.model_name}"
 
 

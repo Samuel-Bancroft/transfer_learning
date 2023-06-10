@@ -22,7 +22,7 @@ import tensorflow as tf
 logger = logging.getLogger(__name__)
 
 def login(request):
-    user = 'Not logged in'
+    user = ''
     if request.method == 'POST':
         form = LoginAuthenticationForm(request.POST)
         if form.is_valid():
@@ -179,8 +179,8 @@ def upload_file(request):
                 username = request.user.get_username()
                 created_by = User.objects.get(username=username)
                 columns = get_columns(files)
-                file_type = form.cleaned_data['file_type']
-                file_data_type = form.cleaned_data['file_data_type']
+                file_type = form.cleaned_data['file_type'] # need to creat function to find the file type
+                file_data_type = form.cleaned_data['file_data_type']# need to creat function to find the file data type
                 form = CreateModel(model_name=model_name,
                                                     file=files,
                                                     created_by=created_by,
@@ -209,8 +209,9 @@ def sort_data(request):
         return HttpResponse(template.render(context, request))
     not_sort_data = pd.read_csv(data.file)
     #While this is local storage
-    not_sort_data.to_csv(f'sorted_{data.file}.csv')
-    sorted_data = pd.read_csv(r'C:\Users\samue\Documents\dataset\sorted_'+ name +'.csv')
+    name = f'sorted_{data.file}'
+    not_sort_data.to_csv('prep-sort')
+    sort_data = pd.read_csv(r'C:\Users\samue\Documents\Transfer_Learning\transfer_learning\{}'.format(name))
 
     if not data:
         context = {'error': 'No data to work with'}
@@ -231,24 +232,29 @@ def sort_data(request):
             if not is_numeric_dtype((sort_data[column])):
                 removed_columns.append(column)
                 sort_data = sort_data.drop(columns=column)
+    sort_data.to_csv(name)
     username = request.user.get_username()
     created_by = User.objects.get(username=username)
     for column in converted_columns[:]:
         if column in removed_columns:
             converted_columns.remove(column)
+    converted_columns = ','.join(list(dict.fromkeys(converted_columns)))
+    removed_columns = ','.join(list(dict.fromkeys(removed_columns)))
     sorted_model = SortedModel(
         model_name=data.model_name,
-        sorted_file=data.file,
+        sorted_file= sort_data,
         created_by=created_by,
-        columns=columns,
+        columns=','.join(columns),
         file_data_type='numerical',
         file_type=data.file_type,
-        from_file=data
+        from_file=data,
+        converted_columns=converted_columns,
+        removed_columns=removed_columns
     )
     sorted_model.save()
     context = {'obj': sorted_model,
-               'removed_columns': removed_columns,
-               'converted_columns': converted_columns
+               'removed_columns': removed_columns.split(","),
+               'converted_columns': converted_columns.split(",")
                }
     request.session['sorted_data_id'] = sorted_model.id
     template = loader.get_template('sorting-data.html')
