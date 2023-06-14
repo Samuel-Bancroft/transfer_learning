@@ -1,3 +1,5 @@
+import os.path
+import os
 from django.shortcuts import render, reverse, redirect
 from django.template import loader
 from django.http import HttpResponse, HttpResponseRedirect
@@ -210,8 +212,8 @@ def sort_data(request):
     not_sort_data = pd.read_csv(data.file)
     #While this is local storage
     name = f'sorted_{data.file}'
-    not_sort_data.to_csv('prep-sort')
-    sort_data = pd.read_csv(r'C:\Users\samue\Documents\Transfer_Learning\transfer_learning\{}'.format(name))
+    not_sort_data.to_csv('prep-sort.csv')
+    sort_data = pd.read_csv(r'C:\Users\samue\Documents\Transfer_Learning\transfer_learning\prep-sort.csv')
 
     if not data:
         context = {'error': 'No data to work with'}
@@ -226,7 +228,7 @@ def sort_data(request):
     for column in columns:
         if not is_numeric_dtype(sort_data[column]):
             unique_values = sort_data[column].unique()
-            for index, word in enumerate(unique_values):
+            for index, word in enumerate(unique_values, 1):
                 converted_columns.append(column)
                 sort_data[column] = sort_data[column].replace([word], index)
             if not is_numeric_dtype((sort_data[column])):
@@ -242,7 +244,7 @@ def sort_data(request):
     removed_columns = ','.join(list(dict.fromkeys(removed_columns)))
     sorted_model = SortedModel(
         model_name=data.model_name,
-        sorted_file= sort_data,
+        sorted_file= os.path.dirname(r'C:\Users\samue\Documents\Transfer_Learning\transfer_learning\{}'.format(name)),
         created_by=created_by,
         columns=','.join(columns),
         file_data_type='numerical',
@@ -256,6 +258,7 @@ def sort_data(request):
                'removed_columns': removed_columns.split(","),
                'converted_columns': converted_columns.split(",")
                }
+    os.remove(r'C:\Users\samue\Documents\Transfer_Learning\transfer_learning\prep-sort.csv')
     request.session['sorted_data_id'] = sorted_model.id
     template = loader.get_template('sorting-data.html')
     return HttpResponse(template.render(context, request))
@@ -274,16 +277,17 @@ def get_contact(request):
     return render(request, "contact-page.html", {"form": form})
 
 def training(request):
+    #basic model training
     if not request.user.is_authenticated:
         return redirect(f'{settings.LOGIN_URL}?next={request.path}')
     user = request.user.username
     id = request.session.get('sorted_data_id')
-    sorted_data = SortedModel.objects.filter(id=id, created_by__username=user)
+    sorted_data = SortedModel.objects.filter(id=id, created_by__username=user).first()
     if not sorted_data:
         context = {'error': 'Sorted File doesnt exist'}
         template = loader.get_template('training.html')
         return HttpResponse(template.render(context, request))
-    file = sorted_data.file
+    file = sorted_data.sorted_file
     df = pd.read_csv(file)
     target = sorted_data.columns[0]
     features = df[target]
@@ -306,7 +310,7 @@ def training(request):
 
     model = get_basic_model()
     model.fit(features, target, epochs=15, batch_size=BATCH_SIZE)
-
+    logger.debug('training_completed')
 
 
 
