@@ -244,7 +244,7 @@ def sort_data(request):
     removed_columns = ','.join(list(dict.fromkeys(removed_columns)))
     sorted_model = SortedModel(
         model_name=data.model_name,
-        sorted_file= os.path.dirname(r'C:\Users\samue\Documents\Transfer_Learning\transfer_learning\{}'.format(name)),
+        sorted_file= open(r'C:\Users\samue\Documents\Transfer_Learning\transfer_learning\{}'.format(name)),
         created_by=created_by,
         columns=','.join(columns),
         file_data_type='numerical',

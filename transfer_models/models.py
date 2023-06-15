@@ -1,3 +1,4 @@
+import pandas as pd
 from django.db import models
 from django import forms
 from django.utils import timezone
@@ -27,12 +28,21 @@ class CreateModel(BaseModel):
 
 
 class SortedModel(BaseModel):
-  sorted_file = models.FileField()
+  sorted_data = models.JSONField()
   columns = models.CharField(max_length=1000, default=None)
   from_file = models.OneToOneField(CreateModel, on_delete=models.CASCADE, default='')
   converted_columns = models.CharField(max_length=1000, default=None)
   removed_columns = models.CharField(max_length=1000, default=None)
   def __str__(self):
     return f"{self.model_name} created from {self.from_file.model_name}"
+
+  @classmethod
+  def put_dataframe(cls, df):
+    store_df = cls(data=df.to_json(orient='split'))
+    store_df.save()
+    return store_df
+
+  def load_df(self):
+    return pd.read_json(self.sorted_data, orient='split')
 
 
