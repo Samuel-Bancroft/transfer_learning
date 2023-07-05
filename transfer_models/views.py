@@ -20,6 +20,7 @@ import numpy as np
 from io import StringIO
 from pandas.api.types import is_numeric_dtype
 import tensorflow as tf
+from sklearn.model_selection import train_test_split
 
 logger = logging.getLogger(__name__)
 
@@ -177,14 +178,15 @@ def upload_file(request):
             if form.is_valid():
                 template = loader.get_template('model_test.html')
                 model_name = form.cleaned_data['model_name']
-                files = form.cleaned_data['file']
+                file = form.cleaned_data['file']
+                data = pd.read_csv(file)
                 username = request.user.get_username()
                 created_by = User.objects.get(username=username)
-                columns = get_columns(files)
+                columns = ','.join(data.columns.values.tolist())
                 file_type = form.cleaned_data['file_type'] # need to creat function to find the file type
                 file_data_type = form.cleaned_data['file_data_type']# need to creat function to find the file data type
                 form = CreateModel(model_name=model_name,
-                                                    file=files,
+                                                    data=data.to_json(orient='split'),
                                                     created_by=created_by,
                                                     columns=columns,
                                                     file_data_type=file_data_type,
@@ -204,22 +206,18 @@ def sort_data(request):
         return redirect(f'{settings.LOGIN_URL}?next={request.path}')
     user = request.user.username
     id = request.session.get('data_id')
-    data = CreateModel.objects.get(id=id, created_by__username=user)
-    if SortedModel.objects.filter(from_file__id=data.id):
+    created_model = CreateModel.objects.get(id=id, created_by__username=user)
+    if SortedModel.objects.filter(from_file__id=created_model.id):
         context = {'error': 'Sorted File already exists'}
         template = loader.get_template('sorting-data.html')
         return HttpResponse(template.render(context, request))
-    not_sort_data = pd.read_csv(data.file)
-    #While this is local storage
-    name = f'sorted_{data.file}'
-    not_sort_data.to_csv('prep-sort.csv')
-    sort_data = pd.read_csv(r'C:\Users\samue\Documents\Transfer_Learning\transfer_learning\prep-sort.csv')
-
-    if not data:
+    if created_model:
+        sort_data = pd.read_json(created_model.data, orient='split')
+    else:
         context = {'error': 'No data to work with'}
         template = loader.get_template('sorting-data.html')
         return HttpResponse(template.render(context, request))
-    elif sort_data.isnull().values.ravel().sum() > 0:
+    if sort_data.isnull().values.ravel().sum() > 0:
         #add dropped columsn in to the remoevd_columns list as they have been removed
         sort_data = sort_data.dropna()
     columns = sort_data.columns.values.tolist()
@@ -234,7 +232,6 @@ def sort_data(request):
             if not is_numeric_dtype((sort_data[column])):
                 removed_columns.append(column)
                 sort_data = sort_data.drop(columns=column)
-    sort_data.to_csv(name)
     username = request.user.get_username()
     created_by = User.objects.get(username=username)
     for column in converted_columns[:]:
@@ -243,13 +240,13 @@ def sort_data(request):
     converted_columns = ','.join(list(dict.fromkeys(converted_columns)))
     removed_columns = ','.join(list(dict.fromkeys(removed_columns)))
     sorted_model = SortedModel(
-        model_name=data.model_name,
-        sorted_file= open(r'C:\Users\samue\Documents\Transfer_Learning\transfer_learning\{}'.format(name)),
+        model_name=created_model.model_name,
+        data= sort_data.to_json(orient='split'),
         created_by=created_by,
         columns=','.join(columns),
         file_data_type='numerical',
-        file_type=data.file_type,
-        from_file=data,
+        file_type=created_model.file_type,
+        from_file=created_model,
         converted_columns=converted_columns,
         removed_columns=removed_columns
     )
@@ -258,7 +255,6 @@ def sort_data(request):
                'removed_columns': removed_columns.split(","),
                'converted_columns': converted_columns.split(",")
                }
-    os.remove(r'C:\Users\samue\Documents\Transfer_Learning\transfer_learning\prep-sort.csv')
     request.session['sorted_data_id'] = sorted_model.id
     template = loader.get_template('sorting-data.html')
     return HttpResponse(template.render(context, request))
@@ -287,30 +283,24 @@ def training(request):
         context = {'error': 'Sorted File doesnt exist'}
         template = loader.get_template('training.html')
         return HttpResponse(template.render(context, request))
-    file = sorted_data.sorted_file
-    df = pd.read_csv(file)
-    target = sorted_data.columns[0]
-    features = df[target]
-    tf.convert_to_tensor(features)
-    normalizer = tf.keras.layers.Normalization(axis=-1)
-    normalizer.adapt(features)
-    normalizer(features.iloc[:3])
-    SHUFFLE_BUFFER = 500
-    BATCH_SIZE = 2
-
+    df = pd.read_json(sorted_data.data, orient='split')
+    columns = sorted_data.columns.split(',')
+    data_features = df.loc[:, columns[0]]
+    data_target = df.iloc[:, -1]
+    X_train, X_test, y_train, y_test = train_test_split(data_features, data_target, random_state=23)
     model = tf.keras.Sequential([
-            normalizer,
-            tf.keras.layers.Dense(10, activation='relu'),
-            tf.keras.layers.Dense(10, activation='relu')
-        ])
+        tf.keras.layers.Dense(64, activation=tf.nn.relu, input_shape=[len(X_train.keys())]),
+        tf.keras.layers.Dense(64, activation=tf.nn.relu),
+        tf.keras.layers.Dense(1)
+    ])
 
-    model.compile(optimizer='adam',
-                      loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
-                      metrics=['accuracy'])
+    model.compile(loss='mean_squared_error',
+                  optimizer='adam',
+                  metrics=['accuracy'])
 
-    model = get_basic_model()
-    model.fit(features, target, epochs=15, batch_size=BATCH_SIZE)
-    logger.debug('training_completed')
+    model.summary()
+    model.fit(X_train, y_train, epochs=50)
+
 
 
 

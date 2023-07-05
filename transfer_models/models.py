@@ -5,7 +5,21 @@ from django.utils import timezone
 from django.contrib.auth.models import User
 
 
+class FileToJSON(models.Model):
+  data = models.JSONField()
+
+  @classmethod
+  def store_dataframe(cls, df):
+    store_data = cls(data=df.to_json(orient='split'))
+    store_data.save()
+    return store_data
+
+  def load_dataframe(self):
+    return pd.read_json(self.data, orient='split')
+
+
 class BaseModel(models.Model):
+  data = models.JSONField()
   model_name = models.CharField(max_length=100, default='Default')
   date_created = models.DateField(default=timezone.now)
   created_by = models.ForeignKey(User, on_delete=models.CASCADE, default='')
@@ -16,7 +30,6 @@ class BaseModel(models.Model):
 
 
 class CreateModel(BaseModel):
-  file = models.FileField()
   columns = models.CharField(max_length=1000, default='default')
   class Meta:
     verbose_name_plural = 'Created Models'
@@ -28,7 +41,6 @@ class CreateModel(BaseModel):
 
 
 class SortedModel(BaseModel):
-  sorted_data = models.JSONField()
   columns = models.CharField(max_length=1000, default=None)
   from_file = models.OneToOneField(CreateModel, on_delete=models.CASCADE, default='')
   converted_columns = models.CharField(max_length=1000, default=None)
@@ -36,13 +48,5 @@ class SortedModel(BaseModel):
   def __str__(self):
     return f"{self.model_name} created from {self.from_file.model_name}"
 
-  @classmethod
-  def put_dataframe(cls, df):
-    store_df = cls(data=df.to_json(orient='split'))
-    store_df.save()
-    return store_df
-
-  def load_df(self):
-    return pd.read_json(self.sorted_data, orient='split')
 
 

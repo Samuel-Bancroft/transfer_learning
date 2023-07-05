@@ -16,6 +16,7 @@ class LoginAuthenticationForm(forms.ModelForm):
 
 
 class CreateModelForm(forms.ModelForm):
+    file = forms.FileField(label='File')
     class Meta:
         model = CreateModel
         fields = ["model_name", "file", 'file_type', 'file_data_type']#, 'created_by']
