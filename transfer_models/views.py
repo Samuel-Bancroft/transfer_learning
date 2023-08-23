@@ -314,7 +314,7 @@ def training(request):
         template = loader.get_template('training.html')
         return HttpResponse(template.render(context, request))
 
-
+#testing VV
 def training_including_user_params(request):
     if not request.user.is_authenticated:
         return redirect(f'{settings.LOGIN_URL}?next={request.path}')
@@ -334,12 +334,15 @@ def training_including_user_params(request):
                     model = tf.keras.Sequential()
                     hidden_layer_count = form.cleaned_data['hiddenlayer_counts'].split(',')
                     activeation_functions = form.cleaned_data['activation_functions'].split(',')
+                    #The first run needs the input shapes, others dont need it
                     initial_run = True
                     if hidden_layer_count and activeation_functions:
                         for layer, activate in zip(hidden_layer_count, activeation_functions):
                             if initial_run:
                                 initial_run = False
-                                model.add(tf.keras.layers.Dense(layer, activation=activate, input_shape=[len(X_train.keys())])
+                                model.add(tf.keras.layers.Dense(layer, activation=activate, input_shape=[len(X_train.keys())]))
+                            model.add(tf.keras.lsyers.Dense(layer, activation=activate))
+
 
                     model.compile(loss=form.cleaned_data['loss_function'],
                                   optimizer=form.cleaned_data['optimization'],
@@ -352,7 +355,7 @@ def training_including_user_params(request):
                     model.fit(X_train, y_train, epochs=epoch if epoch else 50, batch_size=batch if batch else 15, validation_data=(X_test, y_test))
 
                 except:
-                    context = {'error': 'Error occured trying to train the AI model, please revise the data.'}
+                    context = {'error': 'Error occured trying to train the AI model, please revise the data/ peramiters.'}
                     template = loader.get_template('training.html')
                     return HttpResponse(template.render(context, request))
                 if model.summary:

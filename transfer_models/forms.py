@@ -35,7 +35,7 @@ class UserTrainingParams(forms.ModelForm):
     random_state = forms.Textarea()
     class Meta:
         fields = [
-            'data_feature_removal',,
+            'data_feature_removal',
             'activation_functions',
             'loss_function',
             'optimization',
