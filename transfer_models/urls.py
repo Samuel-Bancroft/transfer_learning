@@ -17,4 +17,5 @@ urlpatterns = [
     path('details/<int:id>', views.details, name='details'),
     path('sorted_details/<int:id>', views.sorted_details, name='sorted_details'),
     path('training/', views.training, name='training'),
+    path('user-edited-training/', views.training_including_user_params, name='user-edited-training'),
 ]

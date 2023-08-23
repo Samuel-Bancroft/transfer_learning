@@ -273,7 +273,7 @@ def get_contact(request):
     return render(request, "contact-page.html", {"form": form})
 
 def training(request):
-    #basic model training
+    #basic default model training
     if not request.user.is_authenticated:
         return redirect(f'{settings.LOGIN_URL}?next={request.path}')
     user = request.user.username
@@ -285,21 +285,90 @@ def training(request):
         return HttpResponse(template.render(context, request))
     df = pd.read_json(sorted_data.data, orient='split')
     columns = sorted_data.columns.split(',')
-    data_features = df.loc[:, columns[0]]
-    data_target = df.iloc[:, -1]
-    X_train, X_test, y_train, y_test = train_test_split(data_features, data_target, random_state=23)
-    model = tf.keras.Sequential([
-        tf.keras.layers.Dense(64, activation=tf.nn.relu, input_shape=[len(X_train.keys())]),
-        tf.keras.layers.Dense(64, activation=tf.nn.relu),
-        tf.keras.layers.Dense(1)
-    ])
+    try:
+        data_features = df.loc[:, df.columns != columns[0]]
+        data_target = df.iloc[:, -1]
+        X_train, X_test, y_train, y_test = train_test_split(data_features, data_target, random_state=23)
+        model = tf.keras.Sequential([
+            tf.keras.layers.Dense(64, activation=tf.nn.relu, input_shape=[len(X_train.keys())]),
+            tf.keras.layers.Dense(64, activation=tf.nn.relu),
+            tf.keras.layers.Dense(1)
+        ])
+        model.compile(loss='mean_squared_error',
+                      optimizer='adam',
+                      metrics=['accuracy'])
 
-    model.compile(loss='mean_squared_error',
-                  optimizer='adam',
-                  metrics=['accuracy'])
+        model.summary()
+        model.fit(X_train, y_train, epochs=50, batch_size=15, validation_data=(X_test, y_test))
+    except:
+        context = {'error': 'Error occured trying to train the AI model, please revise the data.'}
+        template = loader.get_template('training.html')
+        return HttpResponse(template.render(context, request))
+    if model.summary:
+        context = {}
+        return_values = model.evaluate(X_test, y_test, verbose=0)
+        context['accuracy'] = return_values[1]
+        context['loss'] = return_values[0]
+        context['display_results'] = 'True'
+        request.session['sorted_data_id'] = model
+        template = loader.get_template('training.html')
+        return HttpResponse(template.render(context, request))
 
-    model.summary()
-    model.fit(X_train, y_train, epochs=50)
+
+def training_including_user_params(request):
+    if not request.user.is_authenticated:
+        return redirect(f'{settings.LOGIN_URL}?next={request.path}')
+    else:
+        if request.method == 'POST':
+            form = UserTrainingParams(request.POST)
+            if form.is_valid():
+                user = request.user.username
+                id = request.session.get('sorted_data_id')
+                sorted_data = SortedModel.objects.filter(id=id, created_by__username=user).first()
+                df = pd.read_json(sorted_data.data, orient='split')
+                columns = sorted_data.columns.split(',')
+                try:
+                    data_features = df.loc[:, df.columns != form.cleaned_data['data_feature_removal'] if form.cleaned_data['data_feature_removal'] else columns[0]]
+                    data_target = df.iloc[:, -1]
+                    X_train, X_test, y_train, y_test = train_test_split(data_features, data_target, random_state=int(form.cleaned_data['random_state']) if form.cleaned_data['random_state'] else 23)
+                    model = tf.keras.Sequential()
+                    hidden_layer_count = form.cleaned_data['hiddenlayer_counts'].split(',')
+                    activeation_functions = form.cleaned_data['activation_functions'].split(',')
+                    initial_run = True
+                    if hidden_layer_count and activeation_functions:
+                        for layer, activate in zip(hidden_layer_count, activeation_functions):
+                            if initial_run:
+                                initial_run = False
+                                model.add(tf.keras.layers.Dense(layer, activation=activate, input_shape=[len(X_train.keys())])
+
+                    model.compile(loss=form.cleaned_data['loss_function'],
+                                  optimizer=form.cleaned_data['optimization'],
+                                  metrics=form.cleaned_data['metrics']
+                                  )
+
+                    model.summary()
+                    epoch = form.cleaned_data['epoch']
+                    batch = form.cleaned_data['batch_size']
+                    model.fit(X_train, y_train, epochs=epoch if epoch else 50, batch_size=batch if batch else 15, validation_data=(X_test, y_test))
+
+                except:
+                    context = {'error': 'Error occured trying to train the AI model, please revise the data.'}
+                    template = loader.get_template('training.html')
+                    return HttpResponse(template.render(context, request))
+                if model.summary:
+                    context = {}
+                    return_values = model.evaluate(X_test, y_test, verbose=0)
+                    context['accuracy'] = return_values[1]
+                    context['loss'] = return_values[0]
+                    context['display_results'] = 'True'
+                    request.session['sorted_data_id'] = model
+                    template = loader.get_template('training.html')
+                    return HttpResponse(template.render(context, request))
+
+
+
+
+
 
 
 

@@ -8,7 +8,18 @@
         {% if error %}
             <p>{{ error }}</p>
         {% elif display_results %}
-            <p>elif</p>
+        <p style="position: relative; left: 23%">Accuracy: {{ accuracy }}</p>
+        <p style="position: relative; left: 23%">Loss: {{ loss }}</p>
+        <br>
+        <div style="position: relative; top: 15%; left:15%">
+            <form action="{% url 'user_edited_training_params' %}" method="get">
+                <p style="left:10%">Do you want to edit the parameters of the model</p>
+                <button type="submit">Edit Params</button>
+            </form>
+        <div/>
+            <div style="position: relative; left: 70%">
+                <button type="submit">Continue</button>
+            </div>
         {% else %}
             <p>else</p>
         {% endif %}

@@ -23,6 +23,41 @@ class CreateModelForm(forms.ModelForm):
         labels = {"model_name": "Model Name", "file": "File", 'file_type': 'File Type', 'file_data_type':'File Data Type'}#, 'created_by':"Created By"}
 
 
+class UserTrainingParams(forms.ModelForm):
+    data_feature_removal = forms.CharField(max_length=100)
+    hiddenlayer_count = forms.IntegerField(max_value=1000)
+    activation_functions = forms.Textarea()
+    loss_function = forms.CharField(max_length=100)
+    optimization = forms.CharField(max_length=100)
+    metrics = forms.CharField(max_length=100)
+    epoch = forms.IntegerField(max_value=1000)
+    batch_size = forms.IntegerField(max_value=1000)
+    random_state = forms.Textarea()
+    class Meta:
+        fields = [
+            'data_feature_removal',,
+            'activation_functions',
+            'loss_function',
+            'optimization',
+            'metrics',
+            'epoch',
+            'batch_size',
+            'random_state',
+            'hiddenlayer_count'
+        ]
+        labels = {
+            'data_feature_removal': 'Data Feature',
+            'activation_functions': 'Activation Functions',
+            'loss_function': 'Loss Function',
+            'optimization': 'Optimization Function',
+            'metrics': 'Metrics',
+            'epoch': 'Epoch Count',
+            'batch_size': 'Batch Size',
+            'random_state': 'Random state',
+            'hiddenlayer_count': 'Hidden Layer counts'
+        }
+
+
 class Contact(models.Model):
   name = models.CharField(max_length=100)
   email = models.CharField(max_length=100)
@@ -37,4 +72,5 @@ class ContactForm(forms.ModelForm):
     class Meta:
         model = Contact
         fields = '__all__'
+
 
