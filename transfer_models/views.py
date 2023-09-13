@@ -314,7 +314,7 @@ def training(request):
         template = loader.get_template('training.html')
         return HttpResponse(template.render(context, request))
 
-#testing VV
+# testing VV
 def training_including_user_params(request):
     if not request.user.is_authenticated:
         return redirect(f'{settings.LOGIN_URL}?next={request.path}')
