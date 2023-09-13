@@ -1,0 +1,23 @@
+{% extends "master.html" %}
+
+{% block title %}
+{% endblock %}
+{% block content %}
+      <div class="content-box" style="position: relative; background-color:white;
+      width: 60%; height: 600px; top:70px; left:23% ;border-radius: 25px">
+        <h3 style="margin: auto; width:25%; padding:10px;">Data Type</h3>
+        <br>
+
+          <div style="position: relative; left: 18%; top: 10%">
+              <p>Please Click on what the dataset type is: </p>
+              <form action="http://127.0.0.1:8000/create-model/dataset_type/img-dataset/">
+                <button type="submit">Image Dataset</button>
+              </form>
+              <form action="http://127.0.0.1:8000/create-model/dataset_type/num-dataset/">
+                <button type="submit">Numerical Dataset</button>
+              </form>
+
+
+          </div>
+      </div>
+{% endblock %}

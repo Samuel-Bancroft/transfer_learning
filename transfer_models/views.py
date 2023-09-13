@@ -168,8 +168,21 @@ def plot_data(request):
     else:
         context = {'columns': data.column_name_list}
         return HttpResponse(template.render(context, request))
+def dataset_type_choice(request):
+    if not request.user.is_authenticated:
+        return redirect(f'{settings.LOGIN_URL}?next={request.path}')
+    else:
+        template = loader.get_template('data_type_choice.html')
+        return HttpResponse(template.render())
 
-def upload_file(request):
+def img_dataset_type(request):
+    if not request.user.is_authenticated:
+        return redirect(f'{settings.LOGIN_URL}?next={request.path}')
+    else:
+        template = loader.get_template('image_training.html')
+        return HttpResponse(template.render())
+
+def num_dataset_type(request):
     if not request.user.is_authenticated:
         return redirect(f'{settings.LOGIN_URL}?next={request.path}')
     else:
