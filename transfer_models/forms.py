@@ -23,6 +23,13 @@ class CreateModelForm(forms.ModelForm):
         labels = {"model_name": "Model Name", "file": "File", 'file_type': 'File Type', 'file_data_type':'File Data Type'}#, 'created_by':"Created By"}
 
 
+class CreateImageModelForm(forms.ModelForm):
+    file = forms.FileField(label='File')
+    class Meta:
+        model = CreateModel
+        fields = ['model_name', 'file', 'file_type', 'file_data_type']
+        labels = {"model_name": "Model Name", "file": "File", 'file_type': 'File Type'}
+
 class UserTrainingParams(forms.ModelForm):
     data_feature_removal = forms.CharField(max_length=100)
     hiddenlayer_count = forms.IntegerField(max_value=1000)

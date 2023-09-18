@@ -1,12 +1,14 @@
 {% extends "master.html" %}
-
-{% block title %}
-{% endblock %}
-{% block content %}
-      <div class="content-box" style="position: relative; background-color:white;
-      width: 60%; height: 600px; top:70px; left:23% ;border-radius: 25px">
-        <h3 style="margin: auto; width:25%; padding:10px;">Data Type</h3>
-        <br>
-          <p>Image Dataset Type Training</p>
-      </div>
-{% endblock %}
+    {% block content %}
+        <div style="position: relative; background-color:white;
+        width: 60%; height: auto; top:70px; left:23% ;border-radius: 25px; padding: 10px">
+            <h3 style="margin: auto; width:25%; padding:10px;">Creating Model</h3>
+            <form method="POST" enctype="multipart/form-data">
+              <fieldset>
+                  {% csrf_token %}
+                  {{ form.as_p }}
+                  <button type="submit" class="btn btn-primary">Submit</button>
+                </fieldset>
+            </form>
+          </div>
+    {% endblock %}

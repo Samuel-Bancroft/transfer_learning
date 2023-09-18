@@ -1,3 +1,5 @@
+import base64
+import json
 import os.path
 import os
 from django.shortcuts import render, reverse, redirect
@@ -179,9 +181,27 @@ def img_dataset_type(request):
     if not request.user.is_authenticated:
         return redirect(f'{settings.LOGIN_URL}?next={request.path}')
     else:
-        template = loader.get_template('image_training.html')
-        return HttpResponse(template.render())
-
+        if request.method == 'POST':
+            form = CreateImageModelForm(request.POST, request.FILES)
+            if form.is_valid():
+                template = loader.get_template('image_training.html')
+                model_name = form.cleaned_data['model_name']
+                file = form.cleaned_data['file']
+                username = request.user.get_username()
+                created_by = User.objects.get(username=username)
+                file_type = form.cleaned_data['file_type']
+                img = file.read()
+                img_data = base64.encodebytes(img).decode('-utf-8')
+                form = CreateModel(model_name=model_name,
+                                   data=json.dumps(img_data),
+                                   file_type=file_type,
+                                   created_by=created_by)
+                form.save()
+                context = {'obj': form,'proceed': True if form else False}
+                return HttpResponse(template.render())
+        else:
+            form = CreateImageModelForm()
+            return render(request, 'image_training.html')
 def num_dataset_type(request):
     if not request.user.is_authenticated:
         return redirect(f'{settings.LOGIN_URL}?next={request.path}')
@@ -190,7 +210,8 @@ def num_dataset_type(request):
             form = CreateModelForm(request.POST, request.FILES)
             if form.is_valid():
                 template = loader.get_template('model_test.html')
-                model_name = form.cleaned_data['model_name']
+                model
+                _name = form.cleaned_data['model_name']
                 file = form.cleaned_data['file']
                 data = pd.read_csv(file)
                 username = request.user.get_username()
