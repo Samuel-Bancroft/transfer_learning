@@ -52,8 +52,12 @@ class SortedDataModel(BaseDataModel):
     return f"{self.model_name}: Is sorted data from {self.from_file.model_name}"
 
 
+def user_directory_path(instance, filename):
+  # file will be uploaded to MEDIA_ROOT / user_<id>/<filename>
+  return 'uploads/user_{0}/{1}'.format(instance.user.id, filename)
+
 class ImageModel(models.Model):
-  img = models.ImageField()
+  img = models.ImageField(upload_to=user_directory_path)
   img_name = models.CharField(max_length=255, default=None)
   file_type = models.CharField(max_length=255, default=None)
   date_created = models.DateField(default=timezone.now)

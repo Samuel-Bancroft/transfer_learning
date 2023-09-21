@@ -7,25 +7,27 @@
 
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
+    <meta name="viewport" content="initial-scale=1">
+    <style type="tet/css">
+      body = { margin:0; }
+    </style>
   </head>
   <body style='background-color: lightblue'>
   <h1 class="center">Transfer Learning</h1>
-    <p style="position: relative; left:95%; top:-50px"><a href="{% url 'logout' %}">Log Out</a></p>
-    <div id="mySidebar" class="sidebar">
-      <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
-      <a href="/">Home</a>
-      <a href="/about_page/">About</a>
-      <a href="/how-to/">How To</a>
-      <a href="/create-model/dataset_type/">Create Model</a>
-      <a href="/contact-us/">Contact Us</a>
+  <p style="position: relative; left:95%; top:-50px; width: 60px; margin: 0 0 0 0"><a href="{% url 'logout' %}">Log Out</a></p>
+  <div id="mySidebar" class="sidebar">
+    <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+    <a href="/">Home</a>
+    <a href="/about_page/">About</a>
+    <a href="/how-to/">How To</a>
+    <a href="/create-model/dataset_type/">Create Model</a>
+    <a href="/contact-us/">Contact Us</a>
 
 
-    </div>
-    <div id="main">
-      <button class="openbtn" onclick="openNav()">&#9776; Open Menu</button>
-    </div>
+  </div>
+  <div id="main">
+    <button class="openbtn" onclick="openNav()">&#9776; Open Menu</button>
+  </div>
 
   {% block content %}
 

@@ -61,13 +61,9 @@ def home(request):
         return redirect(f'{settings.LOGIN_URL}?next={request.path}')
     elif request.user:
         template = loader.get_template('home.html')
-        models = DataModel.objects.filter(created_by__username=request.user.username)
-        sorted_models = SortedDataModel.objects.filter(created_by__username=request.user.username)
-        img_models = ImageModel.objects.filter(created_by__username=request.user.username)
-        if models:
-            models.order_by('-date_created__history_timestamp')
-        if sorted_models:
-            sorted_models.order_by('date_created__history_timestamp')
+        models = DataModel.objects.filter(created_by__username=request.user.username).order_by('date_created')[:10]
+        sorted_models = SortedDataModel.objects.filter(created_by__username=request.user.username).order_by('date_created')[:10]
+        img_models = ImageModel.objects.filter(created_by__username=request.user.username).order_by('date_created')[:10]
         context = {
             'models': models,
             'sorted_models': sorted_models,
@@ -120,7 +116,7 @@ def model_test(request):
 def details(request, id):
     if not request.user.is_authenticated:
         return redirect(f'{settings.LOGIN_URL}?next={request.path}')
-    data = CreateDataModel.objects.get(id=id, created_by__username=request.user.username)
+    data = DataModel.objects.get(id=id, created_by__username=request.user.username)
     template = loader.get_template('details.html')
     context = {
         'data': data,
@@ -153,21 +149,21 @@ def image_model_details(request, id):
 def plot_data(request):
     if not request.user.is_authenticated:
         return redirect(f'{settings.LOGIN_URL}?next={request.path}')
-    data = None
+    obj = None
     if request.method == 'GET':
         id = request.session.get('data_id')
-        data = CreateDataModel.objects.get(id=id, created_by__username=request.user.username)
+        obj = DataModel.objects.get(id=id, created_by__username=request.user.username)
     template = loader.get_template('plot-data.html')
-    if not data:
-        data = CreateDataModel.objects.filter(created_by__username=request.user.username).order_by('date_created').first()
-    context = {'columns': data.column_name_list}
+    if not obj:
+        obj = DataModel.objects.filter(created_by__username=request.user.username).order_by('date_created').first()
+    context = {'columns': obj.column_name_list()}
     matplotlib.use('SVG')
     if request.method =='POST':
         x = request.POST.get('column_x')
         y = request.POST.get('column_y')
         plot_type = request.POST.get('plot_type')
-        file = data.file
-        df = pd.read_csv(file)
+        df = pd.read_json(obj.data, orient='split')
+        #df = pd.read_csv(file)
         xpoints = df[[str(x)]]
         ypoints = df[[str(y)]]
         fig = plt.figure()
@@ -179,10 +175,10 @@ def plot_data(request):
         fig.savefig(imgdata, format='svg')
         imgdata.seek(0)
         plot_data = imgdata.getvalue()
-        context = {'columns': data.column_name_list,'plot_display': True if x else False, 'plot_data': plot_data, 'obj': data}
+        context = {'columns': obj.column_name_list(),'plot_display': True if x else False, 'plot_data': plot_data, 'obj': obj}
         return HttpResponse(template.render(context, request))
     else:
-        context = {'columns': data.column_name_list}
+        context = {'columns': obj.column_name_list()}
         return HttpResponse(template.render(context, request))
 def dataset_type_choice(request):
     if not request.user.is_authenticated:
@@ -206,7 +202,7 @@ def img_dataset_type(request):
                 file_type = form.cleaned_data['file_type']
                 img = file.read()
                 img_data = base64.encodebytes(img).decode('-utf-8')
-                form = CreateModel(model_name=model_name,
+                form = ImageModel(model_name=model_name,
                                    data=json.dumps(img_data),
                                    file_type=file_type,
                                    created_by=created_by)
@@ -253,8 +249,8 @@ def sort_data(request):
         return redirect(f'{settings.LOGIN_URL}?next={request.path}')
     user = request.user.username
     id = request.session.get('data_id')
-    created_model = CreateModel.objects.get(id=id, created_by__username=user)
-    if SortedModel.objects.filter(from_file__id=created_model.id):
+    created_model = DataModel.objects.get(id=id, created_by__username=user)
+    if SortedDataModel.objects.filter(from_file__id=created_model.id):
         context = {'error': 'Sorted File already exists'}
         template = loader.get_template('sorting-data.html')
         return HttpResponse(template.render(context, request))
@@ -286,7 +282,7 @@ def sort_data(request):
             converted_columns.remove(column)
     converted_columns = ','.join(list(dict.fromkeys(converted_columns)))
     removed_columns = ','.join(list(dict.fromkeys(removed_columns)))
-    sorted_model = SortedModel(
+    sorted_model = SortedDataModel(
         model_name=created_model.model_name,
         data= sort_data.to_json(orient='split'),
         created_by=created_by,
@@ -325,7 +321,7 @@ def training(request):
         return redirect(f'{settings.LOGIN_URL}?next={request.path}')
     user = request.user.username
     id = request.session.get('sorted_data_id')
-    sorted_data = SortedModel.objects.filter(id=id, created_by__username=user).first()
+    sorted_data = SortedDataModel.objects.filter(id=id, created_by__username=user).first()
     if not sorted_data:
         context = {'error': 'Sorted File doesnt exist'}
         template = loader.get_template('training.html')

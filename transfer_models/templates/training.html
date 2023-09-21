@@ -12,7 +12,7 @@
         <p style="position: relative; left: 23%">Loss: {{ loss }}</p>
         <br>
         <div style="position: relative; top: 15%; left:15%">
-            <form action="{% url 'user_edited_training_params' %}" method="get">
+            <form action="{% url 'user-edited-training' %}" method="get">
                 <p style="left:10%">Do you want to edit the parameters of the model</p>
                 <button type="submit">Edit Params</button>
             </form>
