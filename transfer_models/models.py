@@ -18,35 +18,50 @@ class FileToJSON(models.Model):
     return pd.read_json(self.data, orient='split')
 
 
-class BaseModel(models.Model):
+class BaseDataModel(models.Model):
   data = models.JSONField()
   model_name = models.CharField(max_length=100, default='Default')
   date_created = models.DateField(default=timezone.now)
   created_by = models.ForeignKey(User, on_delete=models.CASCADE, default='')
   file_type = models.CharField(max_length=10, default=None)
-  file_data_type = models.CharField(max_length=20, default=None)
+  file_data_type = models.CharField(max_length=20, default='N/A')
   class Meta:
     abstract=True
 
 
-class CreateModel(BaseModel):
+class DataModel(BaseDataModel):
   columns = models.CharField(max_length=1000, default='default')
   class Meta:
-    verbose_name_plural = 'Created Models'
-    ordering = ('-date_created',)
+    verbose_name_plural = 'Data Models'
+    ordering = ['-date_created']
   def __str__(self):
     return f"{self.model_name}"
   def column_name_list(self):
     return self.columns.split(",")
 
 
-class SortedModel(BaseModel):
+class SortedDataModel(BaseDataModel):
   columns = models.CharField(max_length=1000, default=None)
-  from_file = models.OneToOneField(CreateModel, on_delete=models.CASCADE, default='')
+  from_file = models.OneToOneField(DataModel, on_delete=models.CASCADE, default='')
   converted_columns = models.CharField(max_length=1000, default=None)
   removed_columns = models.CharField(max_length=1000, default=None)
+  class Meta:
+    verbose_name_plural = 'Sorted Data Models'
+    ordering = ['-date_created']
   def __str__(self):
-    return f"{self.model_name} created from {self.from_file.model_name}"
+    return f"{self.model_name}: Is sorted data from {self.from_file.model_name}"
 
+
+class ImageModel(models.Model):
+  img = models.ImageField()
+  img_name = models.CharField(max_length=255, default=None)
+  file_type = models.CharField(max_length=255, default=None)
+  date_created = models.DateField(default=timezone.now)
+  created_by = models.ForeignKey(User, on_delete=models.CASCADE, default='')
+  class Meta:
+    verbose_name_plural = 'Image Data Models'
+    ordering = ['-date_created']
+  def __str__(self):
+    return f"{self.img_name} - {self.date_created}"
 
 

@@ -31,5 +31,17 @@
         {% else %}
           <p style="position: relative; left: 100px; top: 50px">You have no recent activity sorting a model</p>
         {% endif %}
+        {% if display_img_models %}
+          <div style="position: relative; right: -70%; top: 50%">
+              <h3>Image Models</h3>
+              <ul>
+                  {% for x in img_models %}
+                    <li><a href="image_details/{{ x.id }}" class="button">{{ x.img_name }} - {{ x.date_created }}</a></li>
+                  {% endfor %}
+              </ul>
+          </div>
+        {% else %}
+          <p style="position: relative; left: 100px; top: 50px">You have no recent activity with a Image model</p>
+        {% endif %}
       </div>
 {% endblock %}

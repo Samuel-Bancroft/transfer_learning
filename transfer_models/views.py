@@ -61,17 +61,20 @@ def home(request):
         return redirect(f'{settings.LOGIN_URL}?next={request.path}')
     elif request.user:
         template = loader.get_template('home.html')
-        models = CreateModel.objects.filter(created_by__username=request.user.username)
+        models = DataModel.objects.filter(created_by__username=request.user.username)
+        sorted_models = SortedDataModel.objects.filter(created_by__username=request.user.username)
+        img_models = ImageModel.objects.filter(created_by__username=request.user.username)
         if models:
             models.order_by('-date_created__history_timestamp')
-        sorted_models = SortedModel.objects.filter(created_by__username=request.user.username)
         if sorted_models:
             sorted_models.order_by('date_created__history_timestamp')
         context = {
             'models': models,
             'sorted_models': sorted_models,
+            'img_models': img_models,
             'display_models': True if models else False,
-            'display_sorted_models': True if sorted_models else False
+            'display_sorted_models': True if sorted_models else False,
+            'display_img_models': True if img_models else False
         }
         return HttpResponse(template.render(context, request))
     else:
@@ -108,7 +111,7 @@ def model_test(request):
     if request.method == 'POST':
         template = loader.get_template('data_test.html')
         id = request.session.get('data_id')
-        data = CreateModel.objects.get(id=id, created_by__username=request.user.username)
+        data = DataModel.objects.get(id=id, created_by__username=request.user.username)
         context = {'obj': data}
         return redirect('create-model/model_test/data-test', context)
     else:
@@ -117,7 +120,7 @@ def model_test(request):
 def details(request, id):
     if not request.user.is_authenticated:
         return redirect(f'{settings.LOGIN_URL}?next={request.path}')
-    data = CreateModel.objects.get(id=id, created_by__username=request.user.username)
+    data = CreateDataModel.objects.get(id=id, created_by__username=request.user.username)
     template = loader.get_template('details.html')
     context = {
         'data': data,
@@ -128,12 +131,23 @@ def details(request, id):
 def sorted_details(request, id):
     if not request.user.is_authenticated:
         return redirect(f'{settings.LOGIN_URL}?next={request.path}')
-    data = SortedModel.objects.get(id=id, created_by__username=request.user.username)
-    template = loader.get_template('sorted_details.html')
+    data = SortedDataModel.objects.get(id=id, created_by__username=request.user.username)
+    template = loader.get_template('image_model_details.html')
     context = {
         'data': data,
       }
     request.session['sorted_data_id'] = data.id
+    return HttpResponse(template.render(context, request))
+
+def image_model_details(request, id):
+    if not request.user.is_authenticated:
+        return redirect(f'{settings.LOGIN_URL}?next={request.path}')
+    data = ImageModel.objects.get(id=id, created_by__username=request.user.username)
+    template = loader.get_template('image_model_details.html')
+    context = {
+        'data': data,
+      }
+    request.session['data_id'] = data.id
     return HttpResponse(template.render(context, request))
 
 def plot_data(request):
@@ -142,10 +156,10 @@ def plot_data(request):
     data = None
     if request.method == 'GET':
         id = request.session.get('data_id')
-        data = CreateModel.objects.get(id=id, created_by__username=request.user.username)
+        data = CreateDataModel.objects.get(id=id, created_by__username=request.user.username)
     template = loader.get_template('plot-data.html')
     if not data:
-        data = CreateModel.objects.filter(created_by__username=request.user.username).order_by('date_created').first()
+        data = CreateDataModel.objects.filter(created_by__username=request.user.username).order_by('date_created').first()
     context = {'columns': data.column_name_list}
     matplotlib.use('SVG')
     if request.method =='POST':
@@ -200,18 +214,17 @@ def img_dataset_type(request):
                 context = {'obj': form,'proceed': True if form else False}
                 return HttpResponse(template.render())
         else:
-            form = CreateImageModelForm()
+            form = ImageModelForm()
             return render(request, 'image_training.html')
 def num_dataset_type(request):
     if not request.user.is_authenticated:
         return redirect(f'{settings.LOGIN_URL}?next={request.path}')
     else:
         if request.method == 'POST':
-            form = CreateModelForm(request.POST, request.FILES)
+            form = DataModelForm(request.POST, request.FILES)
             if form.is_valid():
                 template = loader.get_template('model_test.html')
-                model
-                _name = form.cleaned_data['model_name']
+                model_name = form.cleaned_data['model_name']
                 file = form.cleaned_data['file']
                 data = pd.read_csv(file)
                 username = request.user.get_username()
@@ -219,7 +232,7 @@ def num_dataset_type(request):
                 columns = ','.join(data.columns.values.tolist())
                 file_type = form.cleaned_data['file_type'] # need to creat function to find the file type
                 file_data_type = form.cleaned_data['file_data_type']# need to creat function to find the file data type
-                form = CreateModel(model_name=model_name,
+                form = DataModel(model_name=model_name,
                                                     data=data.to_json(orient='split'),
                                                     created_by=created_by,
                                                     columns=columns,
@@ -232,7 +245,7 @@ def num_dataset_type(request):
                 context = {'obj': form,'proceed': True if form else False,'column_count': get_count(columns), 'columns_list': columns_list}
                 return HttpResponse(template.render(context, request))
         else:
-            form = CreateModelForm()
+            form = DataModelForm()
             return render(request, 'user-page.html', {'form': form})
 
 def sort_data(request):
@@ -354,7 +367,7 @@ def training_including_user_params(request):
         return redirect(f'{settings.LOGIN_URL}?next={request.path}')
     else:
         if request.method == 'POST':
-            form = UserTrainingParams(request.POST)
+            form = DataUserTrainingParams(request.POST)
             if form.is_valid():
                 user = request.user.username
                 id = request.session.get('sorted_data_id')

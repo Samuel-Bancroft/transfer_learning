@@ -1,0 +1,16 @@
+{% extends "master.html" %}
+
+{% block content %}
+    <div class="content-box" style="position: relative; background-color:white;
+      width: 60%; height: 600px; top:70px; left:23% ;border-radius: 25px">
+        <h1 style="position: relative; left:40% ;border-radius: 25px">{{ data.model_name }}</h1>
+        <br>
+        <div style="position: relative; left:35% ;border-radius: 25px">
+            <h3>{{ data.date_created }}</h3>
+            <p>{{ data.file_type }}</p>
+            <p>{{ data.img_name }}</p>
+            <p>{{ data.img.show() }}</p>
+            <br>
+        </div>
+      </div>
+{% endblock %}

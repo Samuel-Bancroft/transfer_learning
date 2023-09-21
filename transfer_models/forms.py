@@ -15,22 +15,22 @@ class LoginAuthenticationForm(forms.ModelForm):
 
 
 
-class CreateModelForm(forms.ModelForm):
+class DataModelForm(forms.ModelForm):
     file = forms.FileField(label='File')
     class Meta:
-        model = CreateModel
-        fields = ["model_name", "file", 'file_type', 'file_data_type']#, 'created_by']
-        labels = {"model_name": "Model Name", "file": "File", 'file_type': 'File Type', 'file_data_type':'File Data Type'}#, 'created_by':"Created By"}
+        model = DataModel
+        fields = ["model_name", "file", 'file_type', 'file_data_type']
+        labels = {"model_name": "Model Name", "file": "File", 'file_type': 'File Type', 'file_data_type':'File Data Type'}
 
 
-class CreateImageModelForm(forms.ModelForm):
+class ImageModelForm(forms.ModelForm):
     file = forms.FileField(label='File')
     class Meta:
-        model = CreateModel
-        fields = ['model_name', 'file', 'file_type', 'file_data_type']
-        labels = {"model_name": "Model Name", "file": "File", 'file_type': 'File Type'}
+        model = ImageModel
+        fields = ['img_name', 'img', 'file_type']
+        labels = {"img_name": "Model Name", "img": "Image", 'file_type': 'File Type'}
 
-class UserTrainingParams(forms.ModelForm):
+class DataUserTrainingParams(forms.ModelForm):
     data_feature_removal = forms.CharField(max_length=100)
     hiddenlayer_count = forms.IntegerField(max_value=1000)
     activation_functions = forms.Textarea()
