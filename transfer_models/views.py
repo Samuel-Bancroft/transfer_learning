@@ -192,26 +192,26 @@ def img_dataset_type(request):
         return redirect(f'{settings.LOGIN_URL}?next={request.path}')
     else:
         if request.method == 'POST':
-            form = CreateImageModelForm(request.POST, request.FILES)
+            form = ImageModelForm(request.POST, request.FILES)
             if form.is_valid():
                 template = loader.get_template('image_training.html')
-                model_name = form.cleaned_data['model_name']
-                file = form.cleaned_data['file']
+                img_name = form.cleaned_data['img_name']
+                img = form.cleaned_data['img']
                 username = request.user.get_username()
                 created_by = User.objects.get(username=username)
                 file_type = form.cleaned_data['file_type']
-                img = file.read()
-                img_data = base64.encodebytes(img).decode('-utf-8')
-                form = ImageModel(model_name=model_name,
-                                   data=json.dumps(img_data),
-                                   file_type=file_type,
-                                   created_by=created_by)
+                #img_data = base64.encodebytes(img).decode('-utf-8')
+                form = ImageModel(img_name=img_name,
+                                   #img=json.dumps(img_data),
+                                    img=img,
+                                    file_type=file_type,
+                                    created_by=created_by)
                 form.save()
                 context = {'obj': form,'proceed': True if form else False}
                 return HttpResponse(template.render())
         else:
             form = ImageModelForm()
-            return render(request, 'image_training.html')
+            return render(request, 'image_training.html', {'form': form})
 def num_dataset_type(request):
     if not request.user.is_authenticated:
         return redirect(f'{settings.LOGIN_URL}?next={request.path}')

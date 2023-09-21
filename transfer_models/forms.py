@@ -24,7 +24,6 @@ class DataModelForm(forms.ModelForm):
 
 
 class ImageModelForm(forms.ModelForm):
-    file = forms.FileField(label='File')
     class Meta:
         model = ImageModel
         fields = ['img_name', 'img', 'file_type']
