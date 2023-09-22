@@ -14,7 +14,6 @@ class LoginAuthenticationForm(forms.ModelForm):
         labels = {'username': 'Username', 'password': 'Password'}
 
 
-
 class DataModelForm(forms.ModelForm):
     file = forms.FileField(label='File')
     class Meta:
@@ -28,6 +27,7 @@ class ImageModelForm(forms.ModelForm):
         model = ImageModel
         fields = ['img_name', 'img', 'file_type']
         labels = {"img_name": "Model Name", "img": "Image", 'file_type': 'File Type'}
+
 
 class DataUserTrainingParams(forms.ModelForm):
     data_feature_removal = forms.CharField(max_length=100)
@@ -69,8 +69,10 @@ class Contact(models.Model):
   email = models.CharField(max_length=100)
   comment = models.EmailField(max_length=1000)
 
+
 def faq_suggestions(value):
     pass
+
 
 class ContactForm(forms.ModelForm):
     age = forms.IntegerField()

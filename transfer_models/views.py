@@ -89,6 +89,30 @@ def how_to(request):
     template = loader.get_template('how-to.html')
     return HttpResponse(template.render())
 
+def how_to_create_model(request):
+    if not request.user.is_authenticated:
+        return redirect(f'{settings.LOGIN_URL}?next={request.path}')
+    template = loader.get_template('how-to/how-to-create-model.html')
+    return HttpResponse(template.render())
+
+def how_to_sort_model(request):
+    if not request.user.is_authenticated:
+        return redirect(f'{settings.LOGIN_URL}?next={request.path}')
+    template = loader.get_template('how-to/how-to-sort-model.html')
+    return HttpResponse(template.render())
+
+def how_to_plot_data(request):
+    if not request.user.is_authenticated:
+        return redirect(f'{settings.LOGIN_URL}?next={request.path}')
+    template = loader.get_template('how-to/how-to-plot-data.html')
+    return HttpResponse(template.render())
+
+def how_to_train_model(request):
+    if not request.user.is_authenticated:
+        return redirect(f'{settings.LOGIN_URL}?next={request.path}')
+    template = loader.get_template('how-to/how-to-train-model.html')
+    return HttpResponse(template.render())
+
 def contact_us(request):
     if not request.user.is_authenticated:
         return redirect(f'{settings.LOGIN_URL}?next={request.path}')
@@ -410,12 +434,4 @@ def training_including_user_params(request):
                     request.session['sorted_data_id'] = model
                     template = loader.get_template('training.html')
                     return HttpResponse(template.render(context, request))
-
-
-
-
-
-
-
-
 
