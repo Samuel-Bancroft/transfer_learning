@@ -24,7 +24,10 @@ from pandas.api.types import is_numeric_dtype
 import tensorflow as tf
 from sklearn.model_selection import train_test_split
 
+
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+
 
 def login(request):
     user = ''
@@ -60,6 +63,7 @@ def home(request):
     if not request.user.is_authenticated:
         return redirect(f'{settings.LOGIN_URL}?next={request.path}')
     elif request.user:
+        logger.debug('Loading Models...')
         template = loader.get_template('home.html')
         models = DataModel.objects.filter(created_by__username=request.user.username).order_by('date_created')[:10]
         sorted_models = SortedDataModel.objects.filter(created_by__username=request.user.username).order_by('date_created')[:10]
@@ -72,6 +76,7 @@ def home(request):
             'display_sorted_models': True if sorted_models else False,
             'display_img_models': True if img_models else False
         }
+        logger.debug('HttpResponse Loading...')
         return HttpResponse(template.render(context, request))
     else:
         template = loader.get_template('home.html')
@@ -273,13 +278,13 @@ def sort_data(request):
         return redirect(f'{settings.LOGIN_URL}?next={request.path}')
     user = request.user.username
     id = request.session.get('data_id')
-    created_model = DataModel.objects.get(id=id, created_by__username=user)
-    if SortedDataModel.objects.filter(from_file__id=created_model.id):
+    data_model = DataModel.objects.get(id=id, created_by__username=user)
+    if SortedDataModel.objects.filter(from_file__id=data_model.id):
         context = {'error': 'Sorted File already exists'}
         template = loader.get_template('sorting-data.html')
         return HttpResponse(template.render(context, request))
-    if created_model:
-        sort_data = pd.read_json(created_model.data, orient='split')
+    if data_model:
+        sort_data = pd.read_json(data_model.data, orient='split')
     else:
         context = {'error': 'No data to work with'}
         template = loader.get_template('sorting-data.html')
@@ -307,13 +312,13 @@ def sort_data(request):
     converted_columns = ','.join(list(dict.fromkeys(converted_columns)))
     removed_columns = ','.join(list(dict.fromkeys(removed_columns)))
     sorted_model = SortedDataModel(
-        model_name=created_model.model_name,
+        model_name=data_model.model_name,
         data= sort_data.to_json(orient='split'),
         created_by=created_by,
         columns=','.join(columns),
         file_data_type='numerical',
-        file_type=created_model.file_type,
-        from_file=created_model,
+        file_type=data_model.file_type,
+        from_file=data_model,
         converted_columns=converted_columns,
         removed_columns=removed_columns
     )
@@ -366,7 +371,8 @@ def training(request):
                       metrics=['accuracy'])
 
         model.summary()
-        model.fit(X_train, y_train, epochs=50, batch_size=15, validation_data=(X_test, y_test))
+        model.fit(X_train, y_train, epochs=2, batch_size=15, validation_data=(X_test, y_test))
+        logger.debug('fit completed...')
     except:
         context = {'error': 'Error occured trying to train the AI model, please revise the data.'}
         template = loader.get_template('training.html')
