@@ -157,7 +157,7 @@ def sorted_details(request, id):
     if not request.user.is_authenticated:
         return redirect(f'{settings.LOGIN_URL}?next={request.path}')
     data = SortedDataModel.objects.get(id=id, created_by__username=request.user.username)
-    template = loader.get_template('image_model_details.html')
+    template = loader.get_template('sorted_details.html')
     context = {
         'data': data,
       }
@@ -379,11 +379,18 @@ def training(request):
         return HttpResponse(template.render(context, request))
     if model.summary:
         context = {}
+        logger.debug('------- model.summary == True')
         return_values = model.evaluate(X_test, y_test, verbose=0)
+        logger.debug('------- return_values')
         context['accuracy'] = return_values[1]
         context['loss'] = return_values[0]
         context['display_results'] = 'True'
-        request.session['sorted_data_id'] = model
+        logger.debug('------- return_values')
+        request.session['sorted_data_id'] = sorted_data.id
+        template = loader.get_template('training.html')
+        return HttpResponse(template.render(context, request))
+    else:
+        context = {'error': 'Error occured trying to train the AI model, please revise the data.'}
         template = loader.get_template('training.html')
         return HttpResponse(template.render(context, request))
 
@@ -400,12 +407,13 @@ def training_including_user_params(request):
                 sorted_data = SortedModel.objects.filter(id=id, created_by__username=user).first()
                 df = pd.read_json(sorted_data.data, orient='split')
                 columns = sorted_data.columns.split(',')
+                file = form.cleaned_data['file']
                 try:
-                    data_features = df.loc[:, df.columns != form.cleaned_data['data_feature_removal'] if form.cleaned_data['data_feature_removal'] else columns[0]]
+                    data_features = df.loc[:, df.columns != form.cleaned_data['data_feature_removal']]
                     data_target = df.iloc[:, -1]
                     X_train, X_test, y_train, y_test = train_test_split(data_features, data_target, random_state=int(form.cleaned_data['random_state']) if form.cleaned_data['random_state'] else 23)
                     model = tf.keras.Sequential()
-                    hidden_layer_count = form.cleaned_data['hiddenlayer_counts'].split(',')
+                    hidden_layer_count = form.cleaned_data['hiddenlayer_counts']
                     activeation_functions = form.cleaned_data['activation_functions'].split(',')
                     #The first run needs the input shapes, others dont need it
                     initial_run = True
@@ -424,7 +432,7 @@ def training_including_user_params(request):
 
                     model.summary()
                     epoch = form.cleaned_data['epoch']
-                    batch = form.cleaned_data['batch_size']
+                    batch = form.cleaned_data['bsatch_size']
                     model.fit(X_train, y_train, epochs=epoch if epoch else 50, batch_size=batch if batch else 15, validation_data=(X_test, y_test))
 
                 except:
@@ -440,4 +448,8 @@ def training_including_user_params(request):
                     request.session['sorted_data_id'] = model
                     template = loader.get_template('training.html')
                     return HttpResponse(template.render(context, request))
+        else:
+            form = DataUserTrainingParams()
+            return render(request, 'user_edited_training_params.html', {'form': form})
+
 

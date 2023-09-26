@@ -24,5 +24,5 @@ urlpatterns = [
     path('sorted_details/<int:id>', views.sorted_details, name='sorted_details'),
     path('image_details/<int:id>', views.image_model_details, name='image_model_details'),
     path('training/', views.training, name='training'),
-    path('user-edited-training/', views.training_including_user_params, name='user-edited-training'),
+    path('user_edited_training/', views.training_including_user_params, name='user_edited_training'),
 ]

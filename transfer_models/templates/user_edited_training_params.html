@@ -5,10 +5,10 @@
                 width: 60%; height: auto; top:70px; left:23% ;border-radius: 25px; padding: 10px">
             <h3 style="margin: auto; width:25%; padding:10px;">Update Training Parameters</h3>
 
-            <form method="post" enctype="multipart/form-data">
+            <form action="{% url 'user_edited_training' %}" method="post">
                 {% csrf_token %}
                 {{ form.as_p }}
-                <button type="submit" class="btn btn-primary"
+                <button type="submit">Submit</button>
             </form>
         </div>
 
