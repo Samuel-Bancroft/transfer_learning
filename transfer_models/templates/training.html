@@ -18,7 +18,8 @@
                         <button type="submit">Edit Params</button>
                     </form>
                 </div>
-                <form method="get">
+                <form method="POST">
+                    {% csrf_token %}
                     <div style="position: relative; left: 70%">
                         <button type="submit">Export Results</button>
                     </div>

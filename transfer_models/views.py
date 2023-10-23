@@ -2,6 +2,7 @@ import base64
 import json
 import os.path
 import os
+import csv
 from django.shortcuts import render, reverse, redirect
 from django.template import loader
 from django.http import HttpResponse, HttpResponseRedirect
@@ -12,7 +13,7 @@ from django.shortcuts import redirect
 from .forms import *
 from .models import *
 #from .update_data import updates
-from .functions import get_columns, get_count
+from .functions import *
 import matplotlib
 import logging
 from django.views.decorators.csrf import requires_csrf_token
@@ -23,6 +24,7 @@ from io import StringIO
 from pandas.api.types import is_numeric_dtype
 import tensorflow as tf
 from sklearn.model_selection import train_test_split
+
 
 
 logging.basicConfig(level=logging.DEBUG)
@@ -67,14 +69,11 @@ def home(request):
         template = loader.get_template('home.html')
         models = DataModel.objects.filter(created_by__username=request.user.username).order_by('date_created')[:10]
         sorted_models = SortedDataModel.objects.filter(created_by__username=request.user.username).order_by('date_created')[:10]
-        img_models = ImageModel.objects.filter(created_by__username=request.user.username).order_by('date_created')[:10]
         context = {
             'models': models,
             'sorted_models': sorted_models,
-            'img_models': img_models,
             'display_models': True if models else False,
             'display_sorted_models': True if sorted_models else False,
-            'display_img_models': True if img_models else False
         }
         logger.debug('HttpResponse Loading...')
         return HttpResponse(template.render(context, request))
@@ -164,16 +163,6 @@ def sorted_details(request, id):
     request.session['sorted_data_id'] = data.id
     return HttpResponse(template.render(context, request))
 
-def image_model_details(request, id):
-    if not request.user.is_authenticated:
-        return redirect(f'{settings.LOGIN_URL}?next={request.path}')
-    data = ImageModel.objects.get(id=id, created_by__username=request.user.username)
-    template = loader.get_template('image_model_details.html')
-    context = {
-        'data': data,
-      }
-    request.session['data_id'] = data.id
-    return HttpResponse(template.render(context, request))
 
 def plot_data(request):
     if not request.user.is_authenticated:
@@ -209,38 +198,7 @@ def plot_data(request):
     else:
         context = {'columns': obj.column_name_list()}
         return HttpResponse(template.render(context, request))
-def dataset_type_choice(request):
-    if not request.user.is_authenticated:
-        return redirect(f'{settings.LOGIN_URL}?next={request.path}')
-    else:
-        template = loader.get_template('data_type_choice.html')
-        return HttpResponse(template.render())
 
-def img_dataset_type(request):
-    if not request.user.is_authenticated:
-        return redirect(f'{settings.LOGIN_URL}?next={request.path}')
-    else:
-        if request.method == 'POST':
-            form = ImageModelForm(request.POST, request.FILES)
-            if form.is_valid():
-                template = loader.get_template('image_training.html')
-                img_name = form.cleaned_data['img_name']
-                img = form.cleaned_data['img']
-                username = request.user.get_username()
-                created_by = User.objects.get(username=username)
-                file_type = form.cleaned_data['file_type']
-                #img_data = base64.encodebytes(img).decode('-utf-8')
-                form = ImageModel(img_name=img_name,
-                                   #img=json.dumps(img_data),
-                                    img=img,
-                                    file_type=file_type,
-                                    created_by=created_by)
-                form.save()
-                context = {'obj': form,'proceed': True if form else False}
-                return HttpResponse(template.render())
-        else:
-            form = ImageModelForm()
-            return render(request, 'image_training.html', {'form': form})
 def num_dataset_type(request):
     if not request.user.is_authenticated:
         return redirect(f'{settings.LOGIN_URL}?next={request.path}')
@@ -251,17 +209,16 @@ def num_dataset_type(request):
                 template = loader.get_template('model_test.html')
                 model_name = form.cleaned_data['model_name']
                 file = form.cleaned_data['file']
-                data = pd.read_csv(file)
+                data = pd.read_csv(file, delim_whitespace=True)
                 username = request.user.get_username()
                 created_by = User.objects.get(username=username)
                 columns = ','.join(data.columns.values.tolist())
-                file_type = form.cleaned_data['file_type'] # need to creat function to find the file type
-                file_data_type = form.cleaned_data['file_data_type']# need to creat function to find the file data type
+                file_type = file.name.split('.')[1].lower()
                 form = DataModel(model_name=model_name,
-                                                    data=data.to_json(orient='split'),
+                                                    file=file,
                                                     created_by=created_by,
                                                     columns=columns,
-                                                    file_data_type=file_data_type,
+                                                    file_data_type=Detect_Filetype(data),
                                                     file_type=file_type
                                                 )
                 form.save()
@@ -284,13 +241,13 @@ def sort_data(request):
         template = loader.get_template('sorting-data.html')
         return HttpResponse(template.render(context, request))
     if data_model:
-        sort_data = pd.read_json(data_model.data, orient='split')
+        sort_data = pd.read_csv(data_model.file)
     else:
         context = {'error': 'No data to work with'}
         template = loader.get_template('sorting-data.html')
         return HttpResponse(template.render(context, request))
     if sort_data.isnull().values.ravel().sum() > 0:
-        #add dropped columsn in to the remoevd_columns list as they have been removed
+        #add dropped columns in to the removed_columns list as they have been removed
         sort_data = sort_data.dropna()
     columns = sort_data.columns.values.tolist()
     converted_columns = []
@@ -313,12 +270,12 @@ def sort_data(request):
     removed_columns = ','.join(list(dict.fromkeys(removed_columns)))
     sorted_model = SortedDataModel(
         model_name=data_model.model_name,
-        data= sort_data.to_json(orient='split'),
+        file = sort_data.to_csv('sorted_'+data_model.model_name),
         created_by=created_by,
         columns=','.join(columns),
-        file_data_type='numerical',
+        file_data_type=Detect_Filetype(sort_data),
         file_type=data_model.file_type,
-        from_file=data_model,
+        from_file=data_model.file,
         converted_columns=converted_columns,
         removed_columns=removed_columns
     )
@@ -381,18 +338,29 @@ def training(request):
         context = {}
         logger.debug('------- model.summary == True')
         return_values = model.evaluate(X_test, y_test, verbose=0)
-        logger.debug('------- return_values')
         context['accuracy'] = return_values[1]
         context['loss'] = return_values[0]
         context['display_results'] = 'True'
         logger.debug('------- return_values')
         request.session['sorted_data_id'] = sorted_data.id
+        logger.debug('------- Running Exporter')
+        csv, pre_trained_model = exporter(model, sorted_data.data)
+        return FileResponse(csv, pre_trained_model, as_attachment=True)
         template = loader.get_template('training.html')
         return HttpResponse(template.render(context, request))
     else:
         context = {'error': 'Error occured trying to train the AI model, please revise the data.'}
         template = loader.get_template('training.html')
         return HttpResponse(template.render(context, request))
+    if request.method == 'POST':
+        logger.debug('------- Running Exporter')
+        #csv, pre_trained_model = exporter(sorted_data.data, model)
+        #return FileResponse(csv, as_attachment=True)
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename="{sorted_data.model_name}.csv"'
+        writer = csv.writter(response)
+
+
 
 # testing VV
 def training_including_user_params(request):
@@ -434,7 +402,6 @@ def training_including_user_params(request):
                     epoch = form.cleaned_data['epoch']
                     batch = form.cleaned_data['bsatch_size']
                     model.fit(X_train, y_train, epochs=epoch if epoch else 50, batch_size=batch if batch else 15, validation_data=(X_test, y_test))
-
                 except:
                     context = {'error': 'Error occured trying to train the AI model, please revise the data/ peramiters.'}
                     template = loader.get_template('training.html')

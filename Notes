@@ -1,6 +1,8 @@
 Notes
 
+py manage.py shell
+py manage.py runserver
+py manage.py createsuperuser
+py manage.py makemigrations
+py manage.py migrate
 
-
-From the first time the file is selected, needs to be put into a JSONField and not FileField,
-This will store the data as a JSON

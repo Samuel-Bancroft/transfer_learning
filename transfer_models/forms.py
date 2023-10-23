@@ -15,18 +15,11 @@ class LoginAuthenticationForm(forms.ModelForm):
 
 
 class DataModelForm(forms.ModelForm):
-    file = forms.FileField(label='File')
+    file = forms.FileField(label='Select a File')
     class Meta:
         model = DataModel
-        fields = ["model_name", "file", 'file_type', 'file_data_type']
-        labels = {"model_name": "Model Name", "file": "File", 'file_type': 'File Type', 'file_data_type':'File Data Type'}
-
-
-class ImageModelForm(forms.ModelForm):
-    class Meta:
-        model = ImageModel
-        fields = ['img_name', 'img', 'file_type']
-        labels = {"img_name": "Model Name", "img": "Image", 'file_type': 'File Type'}
+        fields = ["model_name", "file"]
+        labels = {"model_name": "Model Name", "file": "File"}
 
 
 class DataUserTrainingParams(forms.Form):

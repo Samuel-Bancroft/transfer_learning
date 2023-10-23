@@ -19,7 +19,7 @@ class FileToJSON(models.Model):
 
 
 class BaseDataModel(models.Model):
-  data = models.JSONField()
+  file = models.FileField(default='Default', upload_to='files/%Y/%b/%d')
   model_name = models.CharField(max_length=100, default='Default')
   date_created = models.DateField(default=timezone.now)
   created_by = models.ForeignKey(User, on_delete=models.CASCADE, default='')
@@ -43,6 +43,7 @@ class DataModel(BaseDataModel):
 class SortedDataModel(BaseDataModel):
   columns = models.CharField(max_length=1000, default=None)
   from_file = models.OneToOneField(DataModel, on_delete=models.CASCADE, default='')
+  sorted_file = models.FileField(default=None, upload_to='sorted_files/%Y/%b/%d')
   converted_columns = models.CharField(max_length=1000, default=None)
   removed_columns = models.CharField(max_length=1000, default=None)
   class Meta:
@@ -56,16 +57,6 @@ def user_directory_path(instance, filename):
   # file will be uploaded to MEDIA_ROOT / user_<id>/<filename>
   return 'uploads/user_{0}/{1}'.format(instance.user.id, filename)
 
-class ImageModel(models.Model):
-  img = models.ImageField(upload_to=user_directory_path)
-  img_name = models.CharField(max_length=255, default=None)
-  file_type = models.CharField(max_length=255, default=None)
-  date_created = models.DateField(default=timezone.now)
-  created_by = models.ForeignKey(User, on_delete=models.CASCADE, default='')
-  class Meta:
-    verbose_name_plural = 'Image Data Models'
-    ordering = ['-date_created']
-  def __str__(self):
-    return f"{self.img_name} - {self.date_created}"
+
 
 
