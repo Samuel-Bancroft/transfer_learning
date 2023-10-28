@@ -13,15 +13,6 @@
                 <p>{{ obj.file_type }}</p>
                 <p>{{ obj.file_data_type }}</p>
                 <br>
-                <p>remoevd columns</p>
-                {% for column in removed_columns %}
-                    <p>{{ column }}</p>
-                {% endfor %}
-                <p>converted columns</p>
-                {% for column in converted_columns %}
-                    <p>{{ column }}</p>
-                {% endfor %}
-                <br>
 
                 <form action='{% url "plot_data" %}' method="get">
                     {% csrf_token %}

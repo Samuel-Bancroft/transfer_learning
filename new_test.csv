@@ -1,6 +1,6 @@
 age,job,marital,education,default,housing,loan,contact,month,day_of_week,duration,campaign,poutcome
 32,4,0,6,0,,0,0,3,3,131,5,1
-37,10,3,6,0,0,0,0,4,3,100,1,1
+37,10,3,6,0,,0,0,4,3,100,1,1
 55,5,0,5,1,2,0,0,3,2,131,2,1
 44,2,1,0,1,0,0,1,4,3,48,2,1
 28,0,2,3,0,0,0,0,5,0,144,2,1

@@ -44,8 +44,6 @@ class SortedDataModel(BaseDataModel):
   columns = models.CharField(max_length=1000, default=None)
   from_file = models.OneToOneField(DataModel, on_delete=models.CASCADE, default='')
   sorted_file = models.FileField(default=None, upload_to='sorted_files/%Y/%b/%d')
-  converted_columns = models.CharField(max_length=1000, default=None)
-  removed_columns = models.CharField(max_length=1000, default=None)
   class Meta:
     verbose_name_plural = 'Sorted Data Models'
     ordering = ['-date_created']

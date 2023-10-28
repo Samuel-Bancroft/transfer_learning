@@ -241,43 +241,37 @@ def sort_data(request):
         template = loader.get_template('sorting-data.html')
         return HttpResponse(template.render(context, request))
     if data_model:
-        sort_data = pd.read_csv(data_model.file)
+        sort_data = pd.read_csv(data_model.file.path)
     else:
         context = {'error': 'No data to work with'}
         template = loader.get_template('sorting-data.html')
         return HttpResponse(template.render(context, request))
     if sort_data.isnull().values.ravel().sum() > 0:
-        #add dropped columns in to the removed_columns list as they have been removed
         sort_data = sort_data.dropna()
-    columns = sort_data.columns.values.tolist()
-    converted_columns = []
-    removed_columns = []
-    for column in columns:
-        if not is_numeric_dtype(sort_data[column]):
-            unique_values = sort_data[column].unique()
-            for index, word in enumerate(unique_values, 1):
-                converted_columns.append(column)
-                sort_data[column] = sort_data[column].replace([word], index)
-            if not is_numeric_dtype((sort_data[column])):
-                removed_columns.append(column)
-                sort_data = sort_data.drop(columns=column)
-    username = request.user.get_username()
-    created_by = User.objects.get(username=username)
-    for column in converted_columns[:]:
-        if column in removed_columns:
-            converted_columns.remove(column)
-    converted_columns = ','.join(list(dict.fromkeys(converted_columns)))
-    removed_columns = ','.join(list(dict.fromkeys(removed_columns)))
+    converted_sort_data = apply_numeric_function(sort_data)
+    #predict missign values in dataset (future function)
+
+    #sort data
+    # get list of columns with missing data
+    columns_with_missing_values = converted_sort_data.columns[converted_sort_data.isna().any()]
+
+    filled_data, pred = predict_missing_values(df=converted_sort_data, columns_with_missing_values=columns_with_missing_values.to_list())
+    if pred:
+        logger.debug(f'Predicted values for {", ".join(converted_sort_dataorted_data.columns[df.isna().any()].to_list())}')
+    else:
+        if is_columns_with_null:
+            logger.debug('There are still columns with Nan/None in the rows...')
+        else:
+            logger.debug('Didnt predict anything for this dataframe....')
     sorted_model = SortedDataModel(
         model_name=data_model.model_name,
-        file = sort_data.to_csv('sorted_'+data_model.model_name),
+        file = dataframe_to_csv(filled_data, f"filled_sorted_{data_model.model_name}") if pred else dataframe_to_csv(filled_data, f"sorted_{data_model.model_name}"),
         created_by=created_by,
         columns=','.join(columns),
         file_data_type=Detect_Filetype(sort_data),
         file_type=data_model.file_type,
-        from_file=data_model.file,
-        converted_columns=converted_columns,
-        removed_columns=removed_columns
+        from_file=data_model
+
     )
     sorted_model.save()
     context = {'obj': sorted_model,
